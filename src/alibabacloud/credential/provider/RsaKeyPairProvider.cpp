@@ -1,26 +1,20 @@
-#include <alibabacloud/credential/RsaKeyPairCredential.hpp>
 #include <alibabacloud/credential/provider/RsaKeyPairProvider.hpp>
-#include <cstdint>
 #include <darabonba/Core.hpp>
 #include <darabonba/Util.hpp>
 #include <darabonba/http/Query.hpp>
-#include <darabonba/http/URL.hpp>
 #include <darabonba/signature/Signer.hpp>
-
-#include <memory>
 
 namespace Alibabacloud {
 namespace Credential {
 
-std::shared_ptr<CredentialBase> RsaKeyPairProvider::getCredential() {
+bool RsaKeyPairProvider::refreshCredential() const {
   Darabonba::Http::Query query = {
       {"Action", "GenerateSessionAccessKey"},
       {"Format", "JSON"},
       {"Version", "2015-04-01"},
-      {"DurationSeconds",
-       std::to_string(durationSeconds_ ? *durationSeconds_ : 0)},
-      {"AccessKeyId", (accessKeyId_ ? *accessKeyId_ : "")},
-      {"RegionId", (regionId_ ? *regionId_ : "")},
+      {"DurationSeconds", std::to_string(config_->durationSeconds())},
+      {"AccessKeyId", credential_.accessKeyId()},
+      {"RegionId", regionId_},
       {"SignatureMethod", "HMAC-SHA1"},
       {"SignatureVersion", "1.0"},
       {"Timestamp", gmt_datetime()},
@@ -31,7 +25,7 @@ std::shared_ptr<CredentialBase> RsaKeyPairProvider::getCredential() {
   std::string stringToSign = "GET&%2F&" + std::string(query);
   std::string signature =
       Darabonba::Util::toString(Darabonba::Signature::Signer::HmacSHA1Sign(
-          stringToSign, accessKeySecret_ ? *accessKeySecret_ : ""));
+          stringToSign, credential_.accessKeySecret()));
   query.emplace("Signature", signature);
 
   Darabonba::Http::Request req(std::string("https://sts.aliyuncs.com"));
@@ -48,11 +42,13 @@ std::shared_ptr<CredentialBase> RsaKeyPairProvider::getCredential() {
                                         .get<std::string>();
       auto expiration =
           strtotime(sessionAccessKey["Expiration"].get<std::string>());
-      return std::shared_ptr<CredentialBase>(new RsaKeyPairCredential(
-          accessKeyId, accessKeySecret, expiration, shared_from_this()));
+      this->expiration_ = expiration;
+      credential_.setAccessKeyId(accessKeyId)
+          .setAccessKeySecret(accessKeySecret);
+      return true;
     }
   }
-  return nullptr;
+  return false;
 }
 
 } // namespace Credential

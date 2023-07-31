@@ -2,29 +2,87 @@
 #define ALIBABACLOUD_CREDENTIAL_CLIENT_H_
 
 #include <alibabacloud/credential/Config.hpp>
-#include <alibabacloud/credential/CredentialBase.hpp>
+#include <alibabacloud/credential/provider/Provider.hpp>
+#include <darabonba/Model.hpp>
+
 #include <memory>
 #include <string>
 
 namespace Alibabacloud {
 namespace Credential {
-class Client {
+class Client : public Darabonba::Model {
+  friend void to_json(Darabonba::Json &j, const Client &obj) {
+    DARABONBA_PTR_TO_JSON(config, config_);
+  }
+  friend void from_json(const Darabonba::Json &j, Client &obj) {
+    DARABONBA_PTR_FROM_JSON(config, config_);
+    obj.provider_ = makeProvider(obj.config_);
+  }
+
 public:
-  explicit Client(std::shared_ptr<Config> config);
-  ~Client() = default;
+  Client() = default;
+  Client(const Config &obj)
+      : config_(std::make_shared<Config>(obj)),
+        provider_(makeProvider(config_)) {
+    if (provider_ != nullptr) {
+      // set the type, for toMap/fromMap
+      config_->setType(provider_->getCredential().type());
+    }
+  }
+  Client(Config &&obj)
+      : config_(std::make_shared<Config>(std::move(obj))),
+        provider_(makeProvider(config_)) {
+    if (provider_ != nullptr) {
+      // set the type, for toMap/fromMap
+      config_->setType(provider_->getCredential().type());
+    }
+  }
+  Client(std::shared_ptr<Config> config)
+      : config_(config), provider_(makeProvider(config_)) {}
+  virtual ~Client() = default;
 
-  std::string getAccessKeyId() { return credential_->getAccessKeyId(); }
+  virtual void validate() const override {}
 
-  std::string getAccessKeySecret() { return credential_->getAccessKeySecret(); }
+  virtual void fromMap(const Darabonba::Json &obj) override {
+    from_json(obj, *this);
+    validate();
+  }
 
-  std::string getSecurityToken() { return credential_->getSecurityToken(); }
+  virtual Darabonba::Json toMap() const override {
+    Darabonba::Json obj;
+    to_json(obj, *this);
+    return obj;
+  }
 
-  std::string getBearerToken() { return credential_->getBearerToken(); }
+  virtual bool empty() const override {
+    // a special implementation
+    return provider_ == nullptr;
+  }
 
-  std::string getType() { return credential_->getType(); }
+  std::string getAccessKeyId() {
+    return provider_->getCredential().accessKeyId();
+  };
+  std::string getAccessKeySecret() {
+    return provider_->getCredential().accessKeySecret();
+  }
+  std::string getSecurityToken() {
+    return provider_->getCredential().securityToken();
+  }
+  std::string getBearerToken() {
+    return provider_->getCredential().bearerToken();
+  }
+  std::string getType() { return provider_->getCredential().type(); }
+
+  /**
+   * @note Return a copy to avoid inconsistencies
+   */
+  Credential getCredential() const { return provider_->getCredential(); }
 
 private:
-  std::shared_ptr<CredentialBase> credential_;
+  static std::shared_ptr<Provider> makeProvider(std::shared_ptr<Config> config);
+
+  std::shared_ptr<Config> config_ = nullptr;
+  std::shared_ptr<Provider> provider_ = nullptr;
 };
 
 } // namespace Credential

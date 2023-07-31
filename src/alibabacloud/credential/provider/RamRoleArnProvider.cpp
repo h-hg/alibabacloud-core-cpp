@@ -1,4 +1,3 @@
-#include <alibabacloud/credential/RamRoleArnCredential.hpp>
 #include <alibabacloud/credential/provider/RamRoleArnProvider.hpp>
 #include <cstdint>
 #include <darabonba/Core.hpp>
@@ -11,31 +10,30 @@
 namespace Alibabacloud {
 namespace Credential {
 
-std::shared_ptr<CredentialBase> RamRoleArnProvider::getCredential() {
+bool RamRoleArnProvider::refreshCredential() const {
   Darabonba::Http::Query query = {
       {"Action", "AssumeRole"},
       {"Format", "JSON"},
       {"Version", "2015-04-01"},
-      {"DurationSeconds",
-       std::to_string(durationSeconds_ ? *durationSeconds_ : 0)},
-      {"RoleArn", (roleArn_ ? *roleArn_ : "")},
-      {"AccessKeyId", (accessKeyId_ ? *accessKeyId_ : "")},
-      {"RegionId", (regionId_ ? *regionId_ : "")},
-      {"RoleSessionName", (roleSessionName_ ? *roleSessionName_ : "")},
+      {"DurationSeconds", std::to_string(config_->durationSeconds())},
+      {"RoleArn", (config_->roleArn())},
+      {"AccessKeyId", credential_.accessKeyId()},
+      {"RegionId", regionId_},
+      {"RoleSessionName", (config_->roleSessionName())},
       {"SignatureMethod", "HMAC-SHA1"},
       {"SignatureVersion", "1.0"},
       {"Timestamp", gmt_datetime()},
       {"SignatureNonce", Darabonba::Core::uuid()},
   };
-  if (policy_) {
-    query.emplace("Policy", *policy_);
+  if (config_->hasPolicy()) {
+    query.emplace("Policy", config_->policy());
   }
 
   // %2F is the url_encode of '/'
   std::string stringToSign = "GET&%2F&" + std::string(query);
   std::string signature =
       Darabonba::Util::toString(Darabonba::Signature::Signer::HmacSHA1Sign(
-          stringToSign, accessKeySecret_ ? *accessKeySecret_ : ""));
+          stringToSign, credential_.accessKeySecret()));
   query.emplace("Signature", signature);
 
   Darabonba::Http::Request req(std::string("https://sts.aliyuncs.com"));
@@ -52,12 +50,19 @@ std::shared_ptr<CredentialBase> RamRoleArnProvider::getCredential() {
                   securityToken =
                       credential["SecurityToken"].get<std::string>();
       auto expiration = strtotime(credential["Expiration"].get<std::string>());
-      return std::shared_ptr<CredentialBase>(
-          new RamRoleArnCredential(accessKeyId, accessKeySecret, securityToken,
-                                   expiration, shared_from_this()));
+
+      this->expiration_ = expiration;
+      credential_.setAccessKeySecret(accessKeyId)
+          .setAccessKeySecret(accessKeySecret)
+          .setSecurityToken(securityToken);
+      return true;
+      //      return std::shared_ptr<CredentialBase>(
+      //          new RamRoleArnCredential(accessKeyId, accessKeySecret,
+      //          securityToken,
+      //                                   expiration, shared_from_this()));
     }
   }
-  return nullptr;
+  return false;
 }
 
 } // namespace Credential

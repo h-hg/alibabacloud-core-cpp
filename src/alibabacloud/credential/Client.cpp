@@ -1,42 +1,77 @@
-#include <alibabacloud/credential/AccessKeyCredential.hpp>
-#include <alibabacloud/credential/BearerTokenCredential.hpp>
 #include <alibabacloud/credential/Client.hpp>
 #include <alibabacloud/credential/Config.hpp>
 #include <alibabacloud/credential/Constant.hpp>
-#include <alibabacloud/credential/EcsRamRoleCredential.hpp>
-#include <alibabacloud/credential/RamRoleArnCredential.hpp>
-#include <alibabacloud/credential/RsaKeyPairCredential.hpp>
-#include <alibabacloud/credential/StsCredential.hpp>
+#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credential/provider/AccessKeyProvider.hpp>
+#include <alibabacloud/credential/provider/BearerTokenProvider.hpp>
 #include <alibabacloud/credential/provider/EcsRamRoleProvider.hpp>
 #include <alibabacloud/credential/provider/RamRoleArnProvider.hpp>
 #include <alibabacloud/credential/provider/RsaKeyPairProvider.hpp>
+#include <alibabacloud/credential/provider/StsProvider.hpp>
+#include <darabonba/Env.hpp>
 
 namespace Alibabacloud {
 namespace Credential {
-Client::Client(std::shared_ptr<Config> config) {
 
-  if (!config || !config->type) {
-    // todo: use the default provider
-  } else if (*config->type == Constant::ACCESS_KEY) {
-    credential_ = std::make_shared<AccessKeyCredential>(
-        config->accessKeyId, config->accessKeySecret);
-  } else if (*config->type == Constant::BEARER) {
-    credential_ = std::make_shared<BearerTokenCredential>(config->bearerToken);
-  } else if (*config->type == Constant::STS) {
-    credential_ = std::make_shared<StsCredential>(
-        config->accessKeyId, config->accessKeySecret, config->securityToken);
-  } else if (*config->type == Constant::ECS_RAM_ROLE) {
-    auto provider = std::make_shared<EcsRamRoleProvider>(*config);
-    credential_ = provider->getCredential();
-  } else if (*config->type == Constant::RAM_ROLE_ARN) {
-    auto provider = std::make_shared<RamRoleArnProvider>(*config);
-    credential_ = provider->getCredential();
-  } else if (*config->type == Constant::RSA_KEY_PAIR) {
-    auto provider = std::make_shared<RsaKeyPairProvider>(*config);
-    credential_ = provider->getCredential();
+static std::shared_ptr<Provider> getProviderFromEnvVar() {
+  std::string accessKeyId =
+      Darabonba::Env::getEnv("ALIBABA_CLOUD_ACCESS_KEY_ID");
+  std::string accessKeySecret =
+      Darabonba::Env::getEnv("ALIBABA_CLOUD_ACCESS_KEY_SECRET");
+  std::string securityToken =
+      Darabonba::Env::getEnv("ALIBABA_CLOUD_SECURITY_TOKEN");
+  if (accessKeyId.empty() || accessKeySecret.empty()) {
+    return nullptr;
+  }
+  auto pConfig = std::make_shared<Config>();
+  auto &config = *pConfig;
+  config.setAccessKeyId(accessKeyId).setAccessKeySecret(accessKeySecret);
+  if (securityToken.empty()) {
+    return std::shared_ptr<Provider>(new AccessKeyProvider(pConfig));
   } else {
+    config.setSecurityToken(securityToken);
+    auto p = new StsProvider(pConfig);
+    return std::shared_ptr<Provider>(p);
+  }
+  return nullptr;
+}
+
+static std::shared_ptr<Provider> getProviderFromProfile() {
+  // todo
+  return nullptr;
+}
+
+std::shared_ptr<Provider> Client::makeProvider(std::shared_ptr<Config> config) {
+
+  auto type = config->type();
+
+  if (type.empty()) {
+    // todo: use the default provider
+    return nullptr;
+  } else if (type == Constant::ACCESS_KEY) {
+    auto p = new AccessKeyProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else if (type == Constant::BEARER) {
+    auto p = new BearerTokenProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else if (type == Constant::STS) {
+    auto p = new StsProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else if (type == Constant::ECS_RAM_ROLE) {
+    auto p = new EcsRamRoleProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else if (type == Constant::RAM_ROLE_ARN) {
+    auto p = new RamRoleArnProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else if (type == Constant::RSA_KEY_PAIR) {
+    auto p = new RsaKeyPairProvider(config);
+    return std::shared_ptr<Provider>(p);
+  } else {
+    // todo
+    return nullptr;
     // getProvider
   }
+  return nullptr;
 }
 
 } // namespace Credential
