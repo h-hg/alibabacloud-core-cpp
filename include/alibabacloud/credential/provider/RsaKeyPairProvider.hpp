@@ -14,7 +14,7 @@ class RsaKeyPairProvider : public NeedFreshedProvider,
 public:
   RsaKeyPairProvider(std::shared_ptr<Config> config,
                      const std::string regionId = "cn-hangzhou")
-      : config_(config) {
+      : config_(config), regionId_(regionId) {
     credential_.setAccessKeyId(config_->accessKeyId())
         .setAccessKeySecret(config_->accessKeySecret())
         .setType(Constant::RSA_KEY_PAIR);

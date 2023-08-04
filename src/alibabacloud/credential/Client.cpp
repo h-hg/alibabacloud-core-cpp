@@ -9,6 +9,8 @@
 #include <alibabacloud/credential/provider/RsaKeyPairProvider.hpp>
 #include <alibabacloud/credential/provider/StsProvider.hpp>
 #include <darabonba/Env.hpp>
+#include <darabonba/Ini.hpp>
+#include <fstream>
 
 namespace Alibabacloud {
 namespace Credential {
@@ -37,7 +39,27 @@ static std::shared_ptr<Provider> getProviderFromEnvVar() {
 }
 
 static std::shared_ptr<Provider> getProviderFromProfile() {
-  // todo
+  // TODO:
+#ifdef _WIN32
+  auto home = Darabonba::Env::get("USERPROFILE");
+  char sep = '\\';
+#else
+  auto home = Darabonba::Env::getEnv("HOME");
+  char sep = '/';
+#endif
+  if (home.back() != sep) {
+    home.push_back(sep);
+  }
+  std::ifstream ifs(home + ".alibabacloud/credentials.ini");
+  if (!ifs.good()) {
+    return nullptr;
+  }
+  try {
+    auto config = Darabonba::Ini::parse(ifs);
+  } catch (Darabonba::Exception e) {
+    return nullptr;
+  }
+
   return nullptr;
 }
 
@@ -46,7 +68,7 @@ std::shared_ptr<Provider> Client::makeProvider(std::shared_ptr<Config> config) {
   auto type = config->type();
 
   if (type.empty()) {
-    // todo: use the default provider
+    // TODO:: use the default provider
     return nullptr;
   } else if (type == Constant::ACCESS_KEY) {
     auto p = new AccessKeyProvider(config);
@@ -67,7 +89,7 @@ std::shared_ptr<Provider> Client::makeProvider(std::shared_ptr<Config> config) {
     auto p = new RsaKeyPairProvider(config);
     return std::shared_ptr<Provider>(p);
   } else {
-    // todo
+    // TODO:
     return nullptr;
     // getProvider
   }
