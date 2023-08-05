@@ -19,7 +19,6 @@ namespace Alibabacloud {
 
 void convert(const Darabonba::Model &body, Darabonba::Model &content) {
   auto map = body.toMap();
-  // TODO:: remove the readable of map
   content.fromMap(map);
 }
 
@@ -47,7 +46,6 @@ OpenApiUtil::signatureMethod(const std::string &stringToSign,
 void OpenApiUtil::processObject(const Darabonba::Json &obj, std::string key,
                                 Darabonba::Json &out) {
   if (obj.is_primitive()) {
-    // TODO:: Darabonba::Bytes and Json::binary_t is slight different.
     if (obj.is_binary()) {
       const auto &objReal = obj.get_ref<const Darabonba::Json::binary_t &>();
       out[key] = std::string(objReal.begin(), objReal.end());

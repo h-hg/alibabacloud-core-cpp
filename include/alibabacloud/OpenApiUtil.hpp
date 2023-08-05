@@ -3,8 +3,8 @@
 
 #include <cstdint>
 #include <ctime>
-#include <darabonba/Type.hpp>
 #include <darabonba/Model.hpp>
+#include <darabonba/Type.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/http/Request.hpp>
 #include <map>
@@ -17,7 +17,6 @@ namespace Alibabacloud {
 
 class OpenApiUtil {
 public:
-  // TODO:
   static void convert(const Darabonba::Model &body, Darabonba::Model &content);
 
   static std::string getStringToSign(const Darabonba::Http::Request &request);
@@ -106,7 +105,7 @@ public:
   }
 
   static Darabonba::Bytes hash(const Darabonba::Bytes &raw,
-                                   const std::string &signatureAlgorithm) {
+                               const std::string &signatureAlgorithm) {
     if (signatureAlgorithm.empty())
       return {};
     if (signatureAlgorithm == "ACS3-HMAC-SHA256" ||
@@ -158,8 +157,8 @@ public:
   }
 
   static Darabonba::Bytes signatureMethod(const std::string &stringToSign,
-                                              const std::string &secret,
-                                              const std::string &signAlgorithm);
+                                          const std::string &secret,
+                                          const std::string &signAlgorithm);
 
   static Darabonba::Json mapToFlatStyle(const Darabonba::Json &input);
 

@@ -1,6 +1,7 @@
 #ifndef ALIBABACLOUD_GATEWAY_INTERCEPTORCONTEXT_H_
 #define ALIBABACLOUD_GATEWAY_INTERCEPTORCONTEXT_H_
 
+#include <alibabacloud/Response.hpp>
 #include <alibabacloud/credential/Client.hpp>
 #include <darabonba/Model.hpp>
 #include <darabonba/Stream.hpp>
@@ -496,32 +497,31 @@ public:
     }
 
     bool hasBody() const { return this->body_ != nullptr; }
-    std::shared_ptr<Darabonba::IOStream> body() const { DARABONBA_GET(body_); }
-    Response &setBody(std::shared_ptr<Darabonba::IOStream> body) {
+    std::shared_ptr<Darabonba::Http::MCurlResponseBody> body() const {
+      DARABONBA_GET(body_);
+    }
+    Response &
+    setBody(std::shared_ptr<Darabonba::Http::MCurlResponseBody> body) {
       DARABONBA_SET_VALUE(body_, body);
     }
-    // const Darabonba::IOStream &body() const { DARABONBA_PTR_GET(body_);
-    // Darabonba::IOStream &body() { DARABONBA_PTR_GET(body_); }
-    // Response &setBody(const Darabonba::IOStream &body) {
-    //   DARABONBA_PTR_SET_VALUE(body_, body);
-    // }
-    // Response &setBody(Darabonba::IOStream &&body) {
-    //   DARABONBA_PTR_SET_RVALUE(body_, body);
-    // }
 
     bool hasDeserializedBody() const {
       return this->deserializedBody_ != nullptr;
     }
-    const Darabonba::Json &deserializedBody() const {
+    const Alibabacloud::Response::Body &deserializedBody() const {
       DARABONBA_PTR_GET(deserializedBody_);
     }
-    Darabonba::Json &deserializedBody() {
+    Alibabacloud::Response::Body &deserializedBody() {
       DARABONBA_PTR_GET(deserializedBody_);
     }
     Response &setDeserializedBody(const Darabonba::Json &deserializedBody) {
       DARABONBA_PTR_SET_VALUE(deserializedBody_, deserializedBody);
     }
     Response &setDeserializedBody(Darabonba::Json &&deserializedBody) {
+      DARABONBA_PTR_SET_RVALUE(deserializedBody_, deserializedBody);
+    }
+    Response &setDeserializedBody(
+        std::shared_ptr<Darabonba::Http::MCurlResponseBody> deserializedBody) {
       DARABONBA_PTR_SET_RVALUE(deserializedBody_, deserializedBody);
     }
 
@@ -544,9 +544,8 @@ public:
     }
 
   protected:
-    std::shared_ptr<Darabonba::IOStream> body_ = nullptr;
-    // TODO 这个应该改成 Aliababacloud response body
-    std::shared_ptr<Darabonba::Json> deserializedBody_ = nullptr;
+    std::shared_ptr<Darabonba::Http::MCurlResponseBody> body_ = nullptr;
+    std::shared_ptr<Alibabacloud::Response::Body> deserializedBody_ = nullptr;
     std::shared_ptr<Darabonba::Http::Header> headers_ = nullptr;
     std::shared_ptr<int64_t> statusCode_ = nullptr;
   };

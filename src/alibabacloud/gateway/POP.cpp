@@ -54,14 +54,16 @@ void POP::modifyRequest(InterceptorContext &context,
   std::string hashedRequestPayload =
       Darabonba::Encode::Encoder::hexEncode(Darabonba::Encode::Encoder::hash(
           Darabonba::Util::toBytes(""), signatureAlgorithm));
-  if (!Darabonba::Util::isUnset(request.stream())) {
+  // if (!Darabonba::Util::isUnset(request.stream())) {
+  if (request.hasStream()) {
     auto tmp = Darabonba::Util::readAsBytes(request.stream());
     hashedRequestPayload = Darabonba::Encode::Encoder::hexEncode(
         Darabonba::Encode::Encoder::hash(tmp, signatureAlgorithm));
     request.setStream(std::make_shared<Darabonba::ISStream>(tmp));
     request.headers()["content-type"] = "application/octet-stream";
   } else {
-    if (!Darabonba::Util::isUnset(request.body())) {
+    // if (!Darabonba::Util::isUnset(request.body())) {
+    if (request.hasBody()) {
       if (Darabonba::Util::equalString(request.reqBodyType(), "json")) {
         auto jsonObj = Darabonba::Util::toJSONString(request.body());
         hashedRequestPayload = Darabonba::Encode::Encoder::hexEncode(
@@ -118,7 +120,8 @@ void POP::modifyResponse(InterceptorContext &context,
     auto _res = Darabonba::Util::readAsJSON(response.body());
     auto err = Darabonba::Util::assertAsMap(_res);
     auto requestId = defaultAny(err["RequestId"], err["requestId"]);
-    if (!Darabonba::Util::isUnset(response.headers()["x-acs-request-id"])) {
+    // if (!Darabonba::Util::isUnset(response.headers()["x-acs-request-id"])) {
+    if (response.headers().count("x-acs-request-id")) {
       requestId = response.headers()["x-acs-request-id"];
     }
 
@@ -136,8 +139,7 @@ void POP::modifyResponse(InterceptorContext &context,
   if (Darabonba::Util::equalNumber(response.statusCode(), 204)) {
     Darabonba::Util::readAsString(response.body());
   } else if (Darabonba::Util::equalString(request.bodyType(), "binary")) {
-    // TODO: 完全实现不了
-    // response.setDeserializedBody(response.body());
+    response.setDeserializedBody(response.body());
   } else if (Darabonba::Util::equalString(request.bodyType(), "byte")) {
     auto byt = Darabonba::Util::readAsBytes(response.body());
     response.setDeserializedBody(byt);

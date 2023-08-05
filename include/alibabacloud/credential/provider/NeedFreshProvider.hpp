@@ -36,7 +36,6 @@ protected:
     }
   }
 
-  // TODO:
   static int64_t strtotime(const std::string &gmt) {
     tm tm;
     strptime(gmt.c_str(), "%Y-%m-%dT%H:%M:%SZ", &tm);

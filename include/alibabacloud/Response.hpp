@@ -11,6 +11,18 @@ namespace Alibabacloud {
 class Response : public Darabonba::Http::ResponseBase {
 public:
   class Body {
+    friend void to_json(Darabonba::Json &j, const Body &obj) {
+      if (obj.type_ == STREAM || obj.type_ == UNSET) {
+        j = nullptr;
+      } else if (obj.type_ == JSON) {
+        j = obj.json_;
+      }
+    }
+    friend void from_json(const Darabonba::Json &j, Body &obj) {
+      obj.json_ = j;
+      obj.type_ = JSON;
+    }
+
   public:
     Body() = default;
     Body(const Body &) = default;

@@ -5,6 +5,9 @@
 #include <alibabacloud/openapi/Client.hpp>
 #include <darabonba/Util.hpp>
 #include <darabonba/XML.hpp>
+// test
+#include <iostream>
+using namespace std;
 
 namespace Alibabacloud {
 namespace OpenApi {
@@ -14,7 +17,8 @@ namespace OpenApi {
  * @param config config contains the necessary information to create a client
  */
 Client::Client(const Config &config_) {
-  if (Darabonba::Util::isUnset(config_.toMap())) {
+  // if (Darabonba::Util::isUnset(config_.toMap())) {
+  if (config_.empty()) {
     throw Exception(
         Darabonba::Json({{"code", "ParameterMissing"},
                          {"message", "'config' can not be unset"}}));
@@ -37,7 +41,8 @@ Client::Client(const Config &config_) {
             .get<std::map<std::string, std::string>>());
     credentialConfig.setSecurityToken(config.securityToken());
     this->_credential = Credential::Client(credentialConfig);
-  } else if (!Darabonba::Util::isUnset(config.credential())) {
+    // } else if (!Darabonba::Util::isUnset(config.credential())) {
+  } else if (config.hasCredential()) {
     this->_credential = config.credential();
   }
 
@@ -59,7 +64,10 @@ Client::Client(const Config &config_) {
   this->_maxIdleConns = config.maxIdleConns();
   this->_signatureVersion = config.signatureVersion();
   this->_signatureAlgorithm = config.signatureAlgorithm();
-  this->_globalParameters = config.globalParameters();
+  // TODO: 翻译导致的空指针问题
+  if (config.hasGlobalParameters()) {
+    this->_globalParameters = config.globalParameters();
+  }
   this->_key = config.key();
   this->_cert = config.cert();
   this->_ca = config.ca();
@@ -71,7 +79,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
                      const std::string &authType, const std::string &bodyType,
                      const OpenApiRequest &request,
                      const Darabonba::RuntimeOptions &runtime) {
-  Darabonba::Json = {
+  Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
       {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
       {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
@@ -92,18 +100,14 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
       {"maxIdleConns",
        Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
       {"retry",
-       {
-           {"retryable", runtime.autoretry()},
-           {"maxAttempts",
-            Darabonba::Util::defaultNumber(runtime.maxAttempts(), 3)},
-       }},
+       {{"retryable", runtime.autoretry()},
+        {"maxAttempts",
+         Darabonba::Util::defaultNumber(runtime.maxAttempts(), 3)}}},
       {"backoff",
-       {
-           {"policy",
-            Darabonba::Util::defaultString(runtime.backoffPolicy(), "no")},
-           {"period",
-            Darabonba::Util::defaultNumber(runtime.backoffPeriod(), 1)},
-       }},
+       {{"policy",
+         Darabonba::Util::defaultString(runtime.backoffPolicy(), "no")},
+        {"period",
+         Darabonba::Util::defaultNumber(runtime.backoffPeriod(), 1)}}},
       {"ignoreSSL", runtime.ignoreSSL()}};
 
   Darabonba::Http::Request _lastRequest;
@@ -126,14 +130,15 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
       request_.url().setPathName("/");
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      if (!Darabonba::Util::isUnset(_globalParameters)) {
-        // 这里会直接内存错误吧
+      // if (!Darabonba::Util::isUnset(_globalParameters)) {
+      if (!_globalParameters.empty()) {
         GlobalParameters globalParams = _globalParameters;
-        if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        // if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
         }
-
-        if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        // if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        if (globalParams.hasHeaders()) {
           globalHeaders = globalParams.headers();
         }
       }
@@ -149,7 +154,8 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
               globalQueries, request.query())
               .get<std::map<std::string, std::string>>());
       std::map<std::string, std::string> headers = getRpcHeaders();
-      if (Darabonba::Util::isUnset(headers)) {
+      // if (Darabonba::Util::isUnset(headers)) {
+      if (headers.empty()) {
         // endpoint is setted in product client
         request_.setHeader(
             Darabonba::Core::merge(
@@ -170,7 +176,8 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
                 .get<std::map<std::string, std::string>>());
       }
 
-      if (!Darabonba::Util::isUnset(request.body())) {
+      // if (!Darabonba::Util::isUnset(request.body())) {
+      if (request.hasBody()) {
         Darabonba::Json m = Darabonba::Util::assertAsMap(request.body());
         Darabonba::Json tmp =
             Darabonba::Util::anyifyMapValue(OpenApiUtil::query(m));
@@ -190,7 +197,8 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
         request_.query()["SignatureVersion"] = "1.0";
         request_.query()["AccessKeyId"] = accessKeyId;
         Darabonba::Json t = nullptr;
-        if (!Darabonba::Util::isUnset(request.body())) {
+        // if (!Darabonba::Util::isUnset(request.body())) {
+        if (request.hasBody()) {
           t = Darabonba::Util::assertAsMap(request.body());
         }
 
@@ -248,7 +256,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
         return ret;
       }
 
-    } catch (RetryableException e) {
+    } catch (Exception e) {
       _lastException = e;
       continue;
     }
@@ -314,13 +322,16 @@ Client::doROARequest(const std::string &action, const std::string &version,
       request_.url().setPathName(pathname);
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      if (!_globalParameters.empty()) {
         GlobalParameters globalParams = _globalParameters;
-        if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        // if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
         }
 
-        if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        // if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        if (globalParams.hasHeaders()) {
           globalHeaders = globalParams.headers();
         }
       }
@@ -339,13 +350,15 @@ Client::doROARequest(const std::string &action, const std::string &version,
                    {"user-agent", Darabonba::Util::getUserAgent(_userAgent)}}),
               globalHeaders, request.headers())
               .get<std::map<std::string, std::string>>());
-      if (!Darabonba::Util::isUnset(request.body())) {
+      // if (!Darabonba::Util::isUnset(request.body())) {
+      if (request.hasBody()) {
         request_.setBody(request.body());
         request_.header()["content-type"] = "application/json; charset=utf-8";
       }
 
       request_.setQuery(globalQueries);
-      if (!Darabonba::Util::isUnset(request.query())) {
+      // if (!Darabonba::Util::isUnset(request.query())) {
+      if (request.hasQuery()) {
         request_.setQuery(
             Darabonba::Core::merge(request_.query(), request.query())
                 .get<std::map<std::string, std::string>>());
@@ -370,7 +383,6 @@ Client::doROARequest(const std::string &action, const std::string &version,
 
       _lastRequest = request_;
       auto future = Darabonba::Core::doAction(request_, runtime_);
-
       auto response_ = future.get();
       if (Darabonba::Util::equalNumber(response_->statusCode(), 204)) {
         Response ret;
@@ -423,7 +435,7 @@ Client::doROARequest(const std::string &action, const std::string &version,
         return ret;
       }
 
-    } catch (RetryableException e) {
+    } catch (Exception e) {
       _lastException = e;
       continue;
     }
@@ -489,13 +501,16 @@ Response Client::doROARequestWithForm(
       request_.url().setPathName(pathname);
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      if (!_globalParameters.empty()) {
         GlobalParameters globalParams = _globalParameters;
-        if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        // if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
         }
 
-        if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        // if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        if (globalParams.hasHeaders()) {
           globalHeaders = globalParams.headers();
         }
       }
@@ -514,14 +529,16 @@ Response Client::doROARequestWithForm(
                    {"user-agent", Darabonba::Util::getUserAgent(_userAgent)}}),
               globalHeaders, request.headers())
               .get<std::map<std::string, std::string>>());
-      if (!Darabonba::Util::isUnset(request.body())) {
+      // if (!Darabonba::Util::isUnset(request.body())) {
+      if (request.hasBody()) {
         Darabonba::Json m = Darabonba::Util::assertAsMap(request.body());
         request_.setBody(OpenApiUtil::toForm(m));
         request_.header()["content-type"] = "application/x-www-form-urlencoded";
       }
 
       request_.setQuery(globalQueries);
-      if (!Darabonba::Util::isUnset(request.query())) {
+      // if (!Darabonba::Util::isUnset(request.query())) {
+      if (request.hasQuery()) {
         request_.setQuery(
             Darabonba::Core::merge(request_.query(), request.query())
                 .get<std::map<std::string, std::string>>());
@@ -549,8 +566,6 @@ Response Client::doROARequestWithForm(
       auto response_ = future.get();
 
       if (Darabonba::Util::equalNumber(response_->statusCode(), 204)) {
-        // return Darabonba::Json({{"headers", response_->headers()}})
-        //     .get<std::map<string, std::map<std::string, std::string>>>();
         Response ret;
         ret.setStatusCode(response_->statusCode())
             .setHeader(response_->header());
@@ -660,19 +675,29 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       request_.url().setPathName(params.pathname());
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      if (!_globalParameters.empty()) {
         GlobalParameters globalParams = _globalParameters;
-        if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        // if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
         }
 
-        if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        // if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        if (globalParams.hasHeaders()) {
           globalHeaders = globalParams.headers();
         }
       }
 
-      request_.setQuery(Darabonba::Core::merge(globalQueries, request.query())
-                            .get<std::map<std::string, std::string>>());
+      request_.setQuery(
+          Darabonba::Core::merge(
+              globalQueries,
+              [&]() {
+                using type =
+                    std::remove_reference<decltype(request.query())>::type;
+                return request.hasQuery() ? request.query() : type();
+              }())
+              .get<std::map<std::string, std::string>>());
       // endpoint is setted in product client
       request_.setHeader(
           Darabonba::Core::merge(
@@ -684,11 +709,17 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
                    {"x-acs-date", OpenApiUtil::getTimestamp()},
                    {"x-acs-signature-nonce", Darabonba::Util::getNonce()},
                    {"accept", "application/json"}}),
-              globalHeaders, request.headers())
+              globalHeaders,
+              [&]() {
+                using type =
+                    std::remove_reference<decltype(request.headers())>::type;
+                return request.hasHeaders() ? request.headers() : type();
+              }())
               .get<std::map<std::string, std::string>>());
       if (Darabonba::Util::equalString(params.style(), "RPC")) {
         std::map<std::string, std::string> headers = getRpcHeaders();
-        if (!Darabonba::Util::isUnset(headers)) {
+        // if (!Darabonba::Util::isUnset(headers)) {
+        if (!headers.empty()) {
           request_.setHeader(Darabonba::Core::merge(request_.header(), headers)
                                  .get<std::map<std::string, std::string>>());
         }
@@ -698,14 +729,16 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
           _signatureAlgorithm, "ACS3-HMAC-SHA256");
       std::string hashedRequestPayload = OpenApiUtil::hexEncode(
           OpenApiUtil::hash(Darabonba::Util::toBytes(""), signatureAlgorithm));
-      if (!Darabonba::Util::isUnset(request.stream())) {
+      // if (!Darabonba::Util::isUnset(request.stream())) {
+      if (request.hasStream()) {
         Darabonba::Bytes tmp = Darabonba::Util::readAsBytes(request.stream());
         hashedRequestPayload =
             OpenApiUtil::hexEncode(OpenApiUtil::hash(tmp, signatureAlgorithm));
         request_.setBody(tmp);
         request_.header()["content-type"] = "application/octet-stream";
       } else {
-        if (!Darabonba::Util::isUnset(request.body())) {
+        // if (!Darabonba::Util::isUnset(request.body())) {
+        if (request.hasBody()) {
           if (Darabonba::Util::equalString(params.reqBodyType(), "json")) {
             std::string jsonObj = Darabonba::Util::toJSONString(request.body());
             hashedRequestPayload = OpenApiUtil::hexEncode(OpenApiUtil::hash(
@@ -752,16 +785,21 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       if (Darabonba::Util::is4xx(response_->statusCode()) ||
           Darabonba::Util::is5xx(response_->statusCode())) {
         Darabonba::Json err = {};
-        if (!Darabonba::Util::isUnset(response_->header().at("content-type")) &&
-            Darabonba::Util::equalString(response_->header().at("content-type"),
+        // if (!Darabonba::Util::isUnset(response_->header().at("content-type"))
+        // &&
+        //     Darabonba::Util::equalString(response_->header().at("content-type"),
+        //                                  "text/xml;charset=utf-8")) {
+        if (response_->header().count("content-type") &&
+            Darabonba::Util::equalString(response_->header()["content-type"],
                                          "text/xml;charset=utf-8")) {
           std::string _str = Darabonba::Util::readAsString(response_->body());
           Darabonba::Json respMap = Darabonba::XML::parseXml(_str, nullptr);
-          err = Darabonba::Util::assertAsMap(respMap.at("Error"));
+          err = Darabonba::Util::assertAsMap(respMap["Error"]);
         } else {
           Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
           err = Darabonba::Util::assertAsMap(_res);
         }
+        std::cout << err << std::endl;
 
         throw Exception(err);
       }
@@ -807,7 +845,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       continue;
     }
   }
-  throw Alibabacloud::UnretryableException(_lastRequest, _lastException);
+  throw UnretryableException(_lastRequest, _lastException);
 }
 
 Response Client::execute(const Params &params, const OpenApiRequest &request,
@@ -861,13 +899,16 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
       std::map<std::string, std::string> headers = getRpcHeaders();
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
+      if (!_globalParameters.empty()) {
         GlobalParameters globalParams = _globalParameters;
-        if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        // if (!Darabonba::Util::isUnset(globalParams.queries())) {
+        if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
         }
 
-        if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        // if (!Darabonba::Util::isUnset(globalParams.headers())) {
+        if (globalParams.hasHeaders()) {
           globalHeaders = globalParams.headers();
         }
       }
@@ -963,13 +1004,16 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
 
 Response Client::callApi(const Params &params, const OpenApiRequest &request,
                          const Darabonba::RuntimeOptions &runtime) {
-  if (Darabonba::Util::isUnset(params.toMap())) {
+  // if (Darabonba::Util::isUnset(params.toMap())) {
+  if (params.empty()) {
     throw Exception(
         Darabonba::Json({{"code", "ParameterMissing"},
                          {"message", "'params' can not be unset"}}));
   }
 
-  if (Darabonba::Util::isUnset(_signatureAlgorithm) ||
+  // if (Darabonba::Util::isUnset(_signatureAlgorithm) ||
+  //     !Darabonba::Util::equalString(_signatureAlgorithm, "v2")) {
+  if (_signatureAlgorithm.empty() ||
       !Darabonba::Util::equalString(_signatureAlgorithm, "v2")) {
     return doRequest(params, request, runtime);
   } else if (Darabonba::Util::equalString(params.style(), "ROA") &&
