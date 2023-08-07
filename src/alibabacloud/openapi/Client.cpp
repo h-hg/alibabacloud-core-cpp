@@ -5,8 +5,6 @@
 #include <alibabacloud/openapi/Client.hpp>
 #include <darabonba/Util.hpp>
 #include <darabonba/XML.hpp>
-// test
-#include <iostream>
 using namespace std;
 
 namespace Alibabacloud {
@@ -40,65 +38,64 @@ Client::Client(const Config &config_) {
                          {"accessKeySecret", config.accessKeySecret()}})
             .get<std::map<std::string, std::string>>());
     credentialConfig.setSecurityToken(config.securityToken());
-    this->_credential = Credential::Client(credentialConfig);
+    this->credential_ = Credential::Client(credentialConfig);
     // } else if (!Darabonba::Util::isUnset(config.credential())) {
   } else if (config.hasCredential()) {
-    this->_credential = config.credential();
+    this->credential_ = config.credential();
   }
 
-  this->_endpoint = config.endpoint();
-  this->_endpointType = config.endpointType();
-  this->_network = config.network();
-  this->_suffix = config.suffix();
-  this->_protocol = config.protocol();
-  this->_method = config.method();
-  this->_regionId = config.regionId();
-  this->_userAgent = config.userAgent();
-  this->_readTimeout = config.readTimeout();
-  this->_connectTimeout = config.connectTimeout();
-  this->_httpProxy = config.httpProxy();
-  this->_httpsProxy = config.httpsProxy();
-  this->_noProxy = config.noProxy();
-  this->_socks5Proxy = config.socks5Proxy();
-  this->_socks5NetWork = config.socks5NetWork();
-  this->_maxIdleConns = config.maxIdleConns();
-  this->_signatureVersion = config.signatureVersion();
-  this->_signatureAlgorithm = config.signatureAlgorithm();
-  // TODO: 翻译导致的空指针问题
+  this->endpoint_ = config.endpoint();
+  this->endpointType_ = config.endpointType();
+  this->network_ = config.network();
+  this->suffix_ = config.suffix();
+  this->protocol_ = config.protocol();
+  this->method_ = config.method();
+  this->regionId_ = config.regionId();
+  this->userAgent_ = config.userAgent();
+  this->readTimeout_ = config.readTimeout();
+  this->connectTimeout_ = config.connectTimeout();
+  this->httpProxy_ = config.httpProxy();
+  this->httpsProxy_ = config.httpsProxy();
+  this->noProxy_ = config.noProxy();
+  this->socks5Proxy_ = config.socks5Proxy();
+  this->socks5NetWork_ = config.socks5NetWork();
+  this->maxIdleConns_ = config.maxIdleConns();
+  this->signatureVersion_ = config.signatureVersion();
+  this->signatureAlgorithm_ = config.signatureAlgorithm();
   if (config.hasGlobalParameters()) {
-    this->_globalParameters = config.globalParameters();
+    this->globalParameters_ = config.globalParameters();
   }
-  this->_key = config.key();
-  this->_cert = config.cert();
-  this->_ca = config.ca();
+  this->key_ = config.key();
+  this->cert_ = config.cert();
+  this->ca_ = config.ca();
 }
 
 Response
 Client::doRPCRequest(const std::string &action, const std::string &version,
                      const std::string &protocol, const std::string &method,
                      const std::string &authType, const std::string &bodyType,
-                     const OpenApiRequest &request,
+                     const Request &request,
                      const Darabonba::RuntimeOptions &runtime) {
   Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
-      {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
-      {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
-      {"ca", Darabonba::Util::defaultString(runtime.ca(), _ca)},
+      {"key", Darabonba::Util::defaultString(runtime.key(), key_)},
+      {"cert", Darabonba::Util::defaultString(runtime.cert(), cert_)},
+      {"ca", Darabonba::Util::defaultString(runtime.ca(), ca_)},
       {"readTimeout",
-       Darabonba::Util::defaultNumber(runtime.readTimeout(), _readTimeout)},
+       Darabonba::Util::defaultNumber(runtime.readTimeout(), readTimeout_)},
       {"connectTimeout", Darabonba::Util::defaultNumber(
-                             runtime.connectTimeout(), _connectTimeout)},
+                             runtime.connectTimeout(), connectTimeout_)},
       {"httpProxy",
-       Darabonba::Util::defaultString(runtime.httpProxy(), _httpProxy)},
+       Darabonba::Util::defaultString(runtime.httpProxy(), httpProxy_)},
       {"httpsProxy",
-       Darabonba::Util::defaultString(runtime.httpsProxy(), _httpsProxy)},
-      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), _noProxy)},
+       Darabonba::Util::defaultString(runtime.httpsProxy(), httpsProxy_)},
+      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), noProxy_)},
       {"socks5Proxy",
-       Darabonba::Util::defaultString(runtime.socks5Proxy(), _socks5Proxy)},
+       Darabonba::Util::defaultString(runtime.socks5Proxy(), socks5Proxy_)},
       {"socks5NetWork",
-       Darabonba::Util::defaultString(runtime.socks5NetWork(), _socks5NetWork)},
+       Darabonba::Util::defaultString(runtime.socks5NetWork(), socks5NetWork_)},
       {"maxIdleConns",
-       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
+       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), maxIdleConns_)},
       {"retry",
        {{"retryable", runtime.autoretry()},
         {"maxAttempts",
@@ -125,14 +122,14 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
     try {
       Darabonba::Http::Request request_;
       request_.url().setScheme(
-          Darabonba::Util::defaultString(_protocol, protocol));
+          Darabonba::Util::defaultString(protocol_, protocol));
       request_.setMethod(method);
       request_.url().setPathName("/");
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      // if (!Darabonba::Util::isUnset(_globalParameters)) {
-      if (!_globalParameters.empty()) {
-        GlobalParameters globalParams = _globalParameters;
+      // if (!Darabonba::Util::isUnset(globalParameters_)) {
+      if (!globalParameters_.empty()) {
+        GlobalParameters globalParams = globalParameters_;
         // if (!Darabonba::Util::isUnset(globalParams.queries())) {
         if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
@@ -151,7 +148,12 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
                    {"Version", version},
                    {"Timestamp", OpenApiUtil::getTimestamp()},
                    {"SignatureNonce", Darabonba::Util::getNonce()}}),
-              globalQueries, request.query())
+              globalQueries,
+              [&]() {
+                using type =
+                    std::remove_reference<decltype(request.query())>::type;
+                return request.hasQuery() ? request.query() : type();
+              }())
               .get<std::map<std::string, std::string>>());
       std::map<std::string, std::string> headers = getRpcHeaders();
       // if (Darabonba::Util::isUnset(headers)) {
@@ -159,7 +161,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
         // endpoint is setted in product client
         request_.setHeader(
             Darabonba::Core::merge(
-                Darabonba::Json({{"host", _endpoint},
+                Darabonba::Json({{"host", endpoint_},
                                  {"x-acs-version", version},
                                  {"x-acs-action", action},
                                  {"user-agent", getUserAgent()}}),
@@ -168,7 +170,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
       } else {
         request_.setHeader(
             Darabonba::Core::merge(
-                Darabonba::Json({{"host", _endpoint},
+                Darabonba::Json({{"host", endpoint_},
                                  {"x-acs-version", version},
                                  {"x-acs-action", action},
                                  {"user-agent", getUserAgent()}}),
@@ -269,28 +271,28 @@ Response
 Client::doROARequest(const std::string &action, const std::string &version,
                      const std::string &protocol, const std::string &method,
                      const std::string &authType, const std::string &pathname,
-                     const std::string &bodyType, const OpenApiRequest &request,
+                     const std::string &bodyType, const Request &request,
                      const Darabonba::RuntimeOptions &runtime) {
   Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
-      {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
-      {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
-      {"ca", Darabonba::Util::defaultString(runtime.ca(), _ca)},
+      {"key", Darabonba::Util::defaultString(runtime.key(), key_)},
+      {"cert", Darabonba::Util::defaultString(runtime.cert(), cert_)},
+      {"ca", Darabonba::Util::defaultString(runtime.ca(), ca_)},
       {"readTimeout",
-       Darabonba::Util::defaultNumber(runtime.readTimeout(), _readTimeout)},
+       Darabonba::Util::defaultNumber(runtime.readTimeout(), readTimeout_)},
       {"connectTimeout", Darabonba::Util::defaultNumber(
-                             runtime.connectTimeout(), _connectTimeout)},
+                             runtime.connectTimeout(), connectTimeout_)},
       {"httpProxy",
-       Darabonba::Util::defaultString(runtime.httpProxy(), _httpProxy)},
+       Darabonba::Util::defaultString(runtime.httpProxy(), httpProxy_)},
       {"httpsProxy",
-       Darabonba::Util::defaultString(runtime.httpsProxy(), _httpsProxy)},
-      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), _noProxy)},
+       Darabonba::Util::defaultString(runtime.httpsProxy(), httpsProxy_)},
+      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), noProxy_)},
       {"socks5Proxy",
-       Darabonba::Util::defaultString(runtime.socks5Proxy(), _socks5Proxy)},
+       Darabonba::Util::defaultString(runtime.socks5Proxy(), socks5Proxy_)},
       {"socks5NetWork",
-       Darabonba::Util::defaultString(runtime.socks5NetWork(), _socks5NetWork)},
+       Darabonba::Util::defaultString(runtime.socks5NetWork(), socks5NetWork_)},
       {"maxIdleConns",
-       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
+       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), maxIdleConns_)},
       {"retry",
        {{"retryable", runtime.autoretry()},
         {"maxAttempts",
@@ -317,14 +319,14 @@ Client::doROARequest(const std::string &action, const std::string &version,
     try {
       Darabonba::Http::Request request_ = Darabonba::Http::Request();
       request_.url().setScheme(
-          Darabonba::Util::defaultString(_protocol, protocol));
+          Darabonba::Util::defaultString(protocol_, protocol));
       request_.setMethod(method);
       request_.url().setPathName(pathname);
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
-      if (!_globalParameters.empty()) {
-        GlobalParameters globalParams = _globalParameters;
+      // if (!Darabonba::Util::isUnset(globalParameters_.toMap())) {
+      if (!globalParameters_.empty()) {
+        GlobalParameters globalParams = globalParameters_;
         // if (!Darabonba::Util::isUnset(globalParams.queries())) {
         if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
@@ -340,15 +342,20 @@ Client::doROARequest(const std::string &action, const std::string &version,
           Darabonba::Core::merge(
               Darabonba::Json(
                   {{"date", Darabonba::Util::getDateUTCString()},
-                   {"host", _endpoint},
+                   {"host", endpoint_},
                    {"accept", "application/json"},
                    {"x-acs-signature-nonce", Darabonba::Util::getNonce()},
                    {"x-acs-signature-method", "HMAC-SHA1"},
                    {"x-acs-signature-version", "1.0"},
                    {"x-acs-version", version},
                    {"x-acs-action", action},
-                   {"user-agent", Darabonba::Util::getUserAgent(_userAgent)}}),
-              globalHeaders, request.headers())
+                   {"user-agent", Darabonba::Util::getUserAgent(userAgent_)}}),
+              globalHeaders,
+              [&]() {
+                using type =
+                    std::remove_reference<decltype(request.headers())>::type;
+                return request.hasHeaders() ? request.headers() : type();
+              }())
               .get<std::map<std::string, std::string>>());
       // if (!Darabonba::Util::isUnset(request.body())) {
       if (request.hasBody()) {
@@ -448,28 +455,28 @@ Response Client::doROARequestWithForm(
     const std::string &action, const std::string &version,
     const std::string &protocol, const std::string &method,
     const std::string &authType, const std::string &pathname,
-    const std::string &bodyType, const OpenApiRequest &request,
+    const std::string &bodyType, const Request &request,
     const Darabonba::RuntimeOptions &runtime) {
   Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
-      {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
-      {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
-      {"ca", Darabonba::Util::defaultString(runtime.ca(), _ca)},
+      {"key", Darabonba::Util::defaultString(runtime.key(), key_)},
+      {"cert", Darabonba::Util::defaultString(runtime.cert(), cert_)},
+      {"ca", Darabonba::Util::defaultString(runtime.ca(), ca_)},
       {"readTimeout",
-       Darabonba::Util::defaultNumber(runtime.readTimeout(), _readTimeout)},
+       Darabonba::Util::defaultNumber(runtime.readTimeout(), readTimeout_)},
       {"connectTimeout", Darabonba::Util::defaultNumber(
-                             runtime.connectTimeout(), _connectTimeout)},
+                             runtime.connectTimeout(), connectTimeout_)},
       {"httpProxy",
-       Darabonba::Util::defaultString(runtime.httpProxy(), _httpProxy)},
+       Darabonba::Util::defaultString(runtime.httpProxy(), httpProxy_)},
       {"httpsProxy",
-       Darabonba::Util::defaultString(runtime.httpsProxy(), _httpsProxy)},
-      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), _noProxy)},
+       Darabonba::Util::defaultString(runtime.httpsProxy(), httpsProxy_)},
+      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), noProxy_)},
       {"socks5Proxy",
-       Darabonba::Util::defaultString(runtime.socks5Proxy(), _socks5Proxy)},
+       Darabonba::Util::defaultString(runtime.socks5Proxy(), socks5Proxy_)},
       {"socks5NetWork",
-       Darabonba::Util::defaultString(runtime.socks5NetWork(), _socks5NetWork)},
+       Darabonba::Util::defaultString(runtime.socks5NetWork(), socks5NetWork_)},
       {"maxIdleConns",
-       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
+       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), maxIdleConns_)},
       {"retry",
        {{"retryable", runtime.autoretry()},
         {"maxAttempts",
@@ -496,14 +503,14 @@ Response Client::doROARequestWithForm(
     try {
       Darabonba::Http::Request request_ = Darabonba::Http::Request();
       request_.url().setScheme(
-          Darabonba::Util::defaultString(_protocol, protocol));
+          Darabonba::Util::defaultString(protocol_, protocol));
       request_.setMethod(method);
       request_.url().setPathName(pathname);
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
-      if (!_globalParameters.empty()) {
-        GlobalParameters globalParams = _globalParameters;
+      // if (!Darabonba::Util::isUnset(globalParameters_.toMap())) {
+      if (!globalParameters_.empty()) {
+        GlobalParameters globalParams = globalParameters_;
         // if (!Darabonba::Util::isUnset(globalParams.queries())) {
         if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
@@ -519,15 +526,20 @@ Response Client::doROARequestWithForm(
           Darabonba::Core::merge(
               Darabonba::Json(
                   {{"date", Darabonba::Util::getDateUTCString()},
-                   {"host", _endpoint},
+                   {"host", endpoint_},
                    {"accept", "application/json"},
                    {"x-acs-signature-nonce", Darabonba::Util::getNonce()},
                    {"x-acs-signature-method", "HMAC-SHA1"},
                    {"x-acs-signature-version", "1.0"},
                    {"x-acs-version", version},
                    {"x-acs-action", action},
-                   {"user-agent", Darabonba::Util::getUserAgent(_userAgent)}}),
-              globalHeaders, request.headers())
+                   {"user-agent", Darabonba::Util::getUserAgent(userAgent_)}}),
+              globalHeaders,
+              [&]() {
+                using type =
+                    std::remove_reference<decltype(request.headers())>::type;
+                return request.hasHeaders() ? request.headers() : type();
+              }())
               .get<std::map<std::string, std::string>>());
       // if (!Darabonba::Util::isUnset(request.body())) {
       if (request.hasBody()) {
@@ -540,7 +552,13 @@ Response Client::doROARequestWithForm(
       // if (!Darabonba::Util::isUnset(request.query())) {
       if (request.hasQuery()) {
         request_.setQuery(
-            Darabonba::Core::merge(request_.query(), request.query())
+            Darabonba::Core::merge(
+                request_.query(),
+                [&]() {
+                  using type =
+                      std::remove_reference<decltype(request.query())>::type;
+                  return request.hasQuery() ? request.query() : type();
+                }())
                 .get<std::map<std::string, std::string>>());
       }
 
@@ -590,6 +608,7 @@ Response Client::doROARequestWithForm(
         ret.setStatusCode(response_->statusCode())
             .setHeader(response_->header())
             .setBody(Darabonba::Util::readAsBytes(response_->body()));
+        return ret;
       } else if (Darabonba::Util::equalString(bodyType, "string")) {
         Response ret;
         ret.setStatusCode(response_->statusCode())
@@ -622,28 +641,28 @@ Response Client::doROARequestWithForm(
   throw UnretryableException(_lastRequest, _lastException);
 } // namespace OpenApi
 
-Response Client::doRequest(const Params &params, const OpenApiRequest &request,
+Response Client::doRequest(const Params &params, const Request &request,
                            const Darabonba::RuntimeOptions &runtime) {
   Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
-      {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
-      {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
-      {"ca", Darabonba::Util::defaultString(runtime.ca(), _ca)},
+      {"key", Darabonba::Util::defaultString(runtime.key(), key_)},
+      {"cert", Darabonba::Util::defaultString(runtime.cert(), cert_)},
+      {"ca", Darabonba::Util::defaultString(runtime.ca(), ca_)},
       {"readTimeout",
-       Darabonba::Util::defaultNumber(runtime.readTimeout(), _readTimeout)},
+       Darabonba::Util::defaultNumber(runtime.readTimeout(), readTimeout_)},
       {"connectTimeout", Darabonba::Util::defaultNumber(
-                             runtime.connectTimeout(), _connectTimeout)},
+                             runtime.connectTimeout(), connectTimeout_)},
       {"httpProxy",
-       Darabonba::Util::defaultString(runtime.httpProxy(), _httpProxy)},
+       Darabonba::Util::defaultString(runtime.httpProxy(), httpProxy_)},
       {"httpsProxy",
-       Darabonba::Util::defaultString(runtime.httpsProxy(), _httpsProxy)},
-      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), _noProxy)},
+       Darabonba::Util::defaultString(runtime.httpsProxy(), httpsProxy_)},
+      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), noProxy_)},
       {"socks5Proxy",
-       Darabonba::Util::defaultString(runtime.socks5Proxy(), _socks5Proxy)},
+       Darabonba::Util::defaultString(runtime.socks5Proxy(), socks5Proxy_)},
       {"socks5NetWork",
-       Darabonba::Util::defaultString(runtime.socks5NetWork(), _socks5NetWork)},
+       Darabonba::Util::defaultString(runtime.socks5NetWork(), socks5NetWork_)},
       {"maxIdleConns",
-       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
+       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), maxIdleConns_)},
       {"retry",
        {{"retryable", runtime.autoretry()},
         {"maxAttempts",
@@ -670,14 +689,14 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
     try {
       Darabonba::Http::Request request_ = Darabonba::Http::Request();
       request_.url().setScheme(
-          Darabonba::Util::defaultString(_protocol, params.protocol()));
+          Darabonba::Util::defaultString(protocol_, params.protocol()));
       request_.setMethod(params.method());
       request_.url().setPathName(params.pathname());
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
-      if (!_globalParameters.empty()) {
-        GlobalParameters globalParams = _globalParameters;
+      // if (!Darabonba::Util::isUnset(globalParameters_.toMap())) {
+      if (!globalParameters_.empty()) {
+        GlobalParameters globalParams = globalParameters_;
         // if (!Darabonba::Util::isUnset(globalParams.queries())) {
         if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
@@ -702,7 +721,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       request_.setHeader(
           Darabonba::Core::merge(
               Darabonba::Json(
-                  {{"host", _endpoint},
+                  {{"host", endpoint_},
                    {"x-acs-version", params.version()},
                    {"x-acs-action", params.action()},
                    {"user-agent", getUserAgent()},
@@ -726,7 +745,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       }
 
       std::string signatureAlgorithm = Darabonba::Util::defaultString(
-          _signatureAlgorithm, "ACS3-HMAC-SHA256");
+          signatureAlgorithm_, "ACS3-HMAC-SHA256");
       std::string hashedRequestPayload = OpenApiUtil::hexEncode(
           OpenApiUtil::hash(Darabonba::Util::toBytes(""), signatureAlgorithm));
       // if (!Darabonba::Util::isUnset(request.stream())) {
@@ -780,6 +799,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
       }
 
       _lastRequest = request_;
+
       auto future = Darabonba::Core::doAction(request_, runtime_);
       auto response_ = future.get();
       if (Darabonba::Util::is4xx(response_->statusCode()) ||
@@ -799,6 +819,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
           Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
           err = Darabonba::Util::assertAsMap(_res);
         }
+        // TODO
         std::cout << err << std::endl;
 
         throw Exception(err);
@@ -827,6 +848,7 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
         ret.setStatusCode(response_->statusCode())
             .setHeader(response_->header())
             .setBody(Darabonba::Util::readAsJSON(response_->body()));
+        return ret;
       } else if (Darabonba::Util::equalString(params.bodyType(), "array")) {
         Response ret;
         ret.setStatusCode(response_->statusCode())
@@ -848,28 +870,28 @@ Response Client::doRequest(const Params &params, const OpenApiRequest &request,
   throw UnretryableException(_lastRequest, _lastException);
 }
 
-Response Client::execute(const Params &params, const OpenApiRequest &request,
+Response Client::execute(const Params &params, const Request &request,
                          const Darabonba::RuntimeOptions &runtime) {
   Darabonba::Json runtime_ = {
       {"timeouted", "retry"},
-      {"key", Darabonba::Util::defaultString(runtime.key(), _key)},
-      {"cert", Darabonba::Util::defaultString(runtime.cert(), _cert)},
-      {"ca", Darabonba::Util::defaultString(runtime.ca(), _ca)},
+      {"key", Darabonba::Util::defaultString(runtime.key(), key_)},
+      {"cert", Darabonba::Util::defaultString(runtime.cert(), cert_)},
+      {"ca", Darabonba::Util::defaultString(runtime.ca(), ca_)},
       {"readTimeout",
-       Darabonba::Util::defaultNumber(runtime.readTimeout(), _readTimeout)},
+       Darabonba::Util::defaultNumber(runtime.readTimeout(), readTimeout_)},
       {"connectTimeout", Darabonba::Util::defaultNumber(
-                             runtime.connectTimeout(), _connectTimeout)},
+                             runtime.connectTimeout(), connectTimeout_)},
       {"httpProxy",
-       Darabonba::Util::defaultString(runtime.httpProxy(), _httpProxy)},
+       Darabonba::Util::defaultString(runtime.httpProxy(), httpProxy_)},
       {"httpsProxy",
-       Darabonba::Util::defaultString(runtime.httpsProxy(), _httpsProxy)},
-      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), _noProxy)},
+       Darabonba::Util::defaultString(runtime.httpsProxy(), httpsProxy_)},
+      {"noProxy", Darabonba::Util::defaultString(runtime.noProxy(), noProxy_)},
       {"socks5Proxy",
-       Darabonba::Util::defaultString(runtime.socks5Proxy(), _socks5Proxy)},
+       Darabonba::Util::defaultString(runtime.socks5Proxy(), socks5Proxy_)},
       {"socks5NetWork",
-       Darabonba::Util::defaultString(runtime.socks5NetWork(), _socks5NetWork)},
+       Darabonba::Util::defaultString(runtime.socks5NetWork(), socks5NetWork_)},
       {"maxIdleConns",
-       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), _maxIdleConns)},
+       Darabonba::Util::defaultNumber(runtime.maxIdleConns(), maxIdleConns_)},
       {"retry",
        {{"retryable", runtime.autoretry()},
         {"maxAttempts",
@@ -899,9 +921,9 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
       std::map<std::string, std::string> headers = getRpcHeaders();
       std::map<std::string, std::string> globalQueries = {};
       std::map<std::string, std::string> globalHeaders = {};
-      // if (!Darabonba::Util::isUnset(_globalParameters.toMap())) {
-      if (!_globalParameters.empty()) {
-        GlobalParameters globalParams = _globalParameters;
+      // if (!Darabonba::Util::isUnset(globalParameters_.toMap())) {
+      if (!globalParameters_.empty()) {
+        GlobalParameters globalParams = globalParameters_;
         // if (!Darabonba::Util::isUnset(globalParams.queries())) {
         if (globalParams.hasQueries()) {
           globalQueries = globalParams.queries();
@@ -913,57 +935,66 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
         }
       }
 
-      Gateway::InterceptorContext::Request requestContext = Darabonba::Json(
-          {{"headers",
-            Darabonba::Core::merge(globalHeaders, request.headers(), headers)
-                .get<std::map<std::string, std::string>>()},
-           {"query", Darabonba::Core::merge(globalQueries, request.query())
-                         .get<std::map<std::string, std::string>>()},
-           {"body", request.body()},
-           // todo
-           //{"stream", request.stream()},
-           {"hostMap", request.hostMap()},
-           {"pathname", params.pathname()},
-           {"productId", _productId},
-           {"action", params.action()},
-           {"version", params.version()},
-           {"protocol",
-            Darabonba::Util::defaultString(_protocol, params.protocol())},
-           {"method", Darabonba::Util::defaultString(_method, params.method())},
-           {"authType", params.authType()},
-           {"bodyType", params.bodyType()},
-           {"reqBodyType", params.reqBodyType()},
-           {"style", params.style()},
-           {"credential", _credential},
-           {"signatureVersion", _signatureVersion},
-           {"signatureAlgorithm", _signatureAlgorithm},
-           {"userAgent", getUserAgent()}});
-      // todo
+      Gateway::InterceptorContext::Request requestContext;
+      requestContext
+          .setHeaders(Darabonba::Core::merge(
+                          globalHeaders,
+                          [&]() {
+                            using type = std::remove_reference<
+                                decltype(request.headers())>::type;
+                            return request.hasHeaders() ? request.headers()
+                                                        : type();
+                          }(),
+                          headers)
+                          .get<std::map<std::string, std::string>>())
+          .setQuery(
+              Darabonba::Core::merge(
+                  globalQueries,
+                  [&]() {
+                    using type =
+                        std::remove_reference<decltype(request.query())>::type;
+                    return request.hasQuery() ? request.query() : type();
+                  }())
+                  .get<std::map<std::string, std::string>>())
+          .setBody(request.body())
+          .setStream(request.stream())
+          .setHostMap(request.hostMap())
+          .setPathname(params.pathname())
+          .setProductId(productId_)
+          .setAction(params.action())
+          .setVersion(params.version())
+          .setProtocol(
+              Darabonba::Util::defaultString(protocol_, params.protocol()))
+          .setMethod(Darabonba::Util::defaultString(method_, params.method()))
+          .setAuthType(params.authType())
+          .setBodyType(params.bodyType())
+          .setReqBodyType(params.reqBodyType())
+          .setStyle(params.style())
+          .setCredential(credential_)
+          .setSignatureVersion(signatureVersion_)
+          .setSignatureAlgorithm(signatureAlgorithm_)
+          .setUserAgent(getUserAgent());
 
-      Gateway::InterceptorContext::Configuration configurationContext =
-          Darabonba::Json(
-              {{"regionId", _regionId},
-               {"endpoint", Darabonba::Util::defaultString(
-                                request.endpointOverride(), _endpoint)},
-               {"endpointRule", _endpointRule},
-               {"endpointMap", _endpointMap},
-               {"endpointType", _endpointType},
-               {"network", _network},
-               {"suffix", _suffix}});
-      // 这种翻译是有问题，会丢失东西
+      Gateway::InterceptorContext::Configuration configurationContext;
+      configurationContext.setRegionId(regionId_)
+          .setEndpoint(Darabonba::Util::defaultString(
+              request.endpointOverride(), endpoint_))
+          .setEndpointRule(endpointRule_)
+          .setEndpointMap(endpointMap_)
+          .setEndpointType(endpointType_)
+          .setNetwork(network_)
+          .setSuffix(suffix_);
+
       Gateway::InterceptorContext interceptorContext;
-      interceptorContext.setRequest(requestContext);
-      interceptorContext.setConfiguration(configurationContext);
-      // Gateway::InterceptorContext(
-      //     Darabonba::Json({{"request", requestContext},
-      //                      {"configuration", configurationContext}}));
+      interceptorContext.setRequest(requestContext)
+          .setConfiguration(configurationContext);
       Gateway::AttributeMap attributeMap;
       // 1. spi.modifyConfiguration(context: SPI.InterceptorContext,
       // attributeMap: SPI.AttributeMap);
-      _spi->modifyConfiguration(interceptorContext, attributeMap);
+      spi_->modifyConfiguration(interceptorContext, attributeMap);
       // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap:
       // SPI.AttributeMap);
-      _spi->modifyRequest(interceptorContext, attributeMap);
+      spi_->modifyRequest(interceptorContext, attributeMap);
       request_.url().setScheme(interceptorContext.request().protocol());
       request_.setMethod(interceptorContext.request().method());
       request_.url().setPathName(interceptorContext.request().pathname());
@@ -977,22 +1008,14 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
       responseContext.setStatusCode(response_->statusCode())
           .setHeaders(response_->header())
           .setBody(response_->body());
-      // = Gateway::Response(
-      //     Darabonba::Json({{"statusCode", response_->statusCode()},
-      //                      {"headers", response_->headers()},
-      //                      {"body", response_->body()}}));
       interceptorContext.setResponse(responseContext);
       // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap:
       // SPI.AttributeMap);
-      _spi->modifyResponse(interceptorContext, attributeMap);
+      spi_->modifyResponse(interceptorContext, attributeMap);
       Response ret;
       ret.setHeader(interceptorContext.response().headers())
           .setStatusCode(interceptorContext.response().statusCode())
           .setBody(interceptorContext.response().deserializedBody());
-      // return Darabonba::Json(
-      //     {{"headers", interceptorContext.response().headers()},
-      //      {"statusCode", interceptorContext.response().statusCode()},
-      //      {"body", interceptorContext.response().deserializedBody()}});
       return ret;
     } catch (Alibabacloud::RetryableException e) {
       _lastException = e;
@@ -1002,7 +1025,7 @@ Response Client::execute(const Params &params, const OpenApiRequest &request,
   throw Alibabacloud::UnretryableException(_lastRequest, _lastException);
 }
 
-Response Client::callApi(const Params &params, const OpenApiRequest &request,
+Response Client::callApi(const Params &params, const Request &request,
                          const Darabonba::RuntimeOptions &runtime) {
   // if (Darabonba::Util::isUnset(params.toMap())) {
   if (params.empty()) {
@@ -1011,10 +1034,10 @@ Response Client::callApi(const Params &params, const OpenApiRequest &request,
                          {"message", "'params' can not be unset"}}));
   }
 
-  // if (Darabonba::Util::isUnset(_signatureAlgorithm) ||
-  //     !Darabonba::Util::equalString(_signatureAlgorithm, "v2")) {
-  if (_signatureAlgorithm.empty() ||
-      !Darabonba::Util::equalString(_signatureAlgorithm, "v2")) {
+  // if (Darabonba::Util::isUnset(signatureAlgorithm_) ||
+  //     !Darabonba::Util::equalString(signatureAlgorithm_, "v2")) {
+  if (signatureAlgorithm_.empty() ||
+      !Darabonba::Util::equalString(signatureAlgorithm_, "v2")) {
     return doRequest(params, request, runtime);
   } else if (Darabonba::Util::equalString(params.style(), "ROA") &&
              Darabonba::Util::equalString(params.reqBodyType(), "json")) {
@@ -1053,7 +1076,7 @@ Darabonba::Json Client::defaultAny(Darabonba::Json &inputValue,
  * @param config config contains the necessary information to create a client
  */
 void Client::checkConfig(Config &config) {
-  if (Darabonba::Util::empty(_endpointRule) &&
+  if (Darabonba::Util::empty(endpointRule_) &&
       Darabonba::Util::empty(config.endpoint())) {
     throw Exception(
         Darabonba::Json({{"code", "ParameterMissing"},

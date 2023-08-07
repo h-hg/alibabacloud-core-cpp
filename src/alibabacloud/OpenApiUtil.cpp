@@ -167,7 +167,6 @@ std::string OpenApiUtil::getCanonicalResource(
   return ret;
 }
 
-// TODO:
 std::string OpenApiUtil::getStringToSign(const Darabonba::Http::Request &req) {
   auto method = req.method(), path = req.url().pathName();
   const auto &headers = req.header();
@@ -231,21 +230,23 @@ std::string OpenApiUtil::getRPCSignature(
 
 std::pair<std::string, std::string>
 OpenApiUtil::getCanonicalHeadersPair(const Darabonba::Http::Header &headers) {
-  std::map<std::string, std::vector<std::string>> tmpHeaders;
+  std::map<std::string, std::set<std::string>> tmpHeaders;
   std::set<std::string> canonicalKeys;
+
   for (const auto &p : headers) {
     auto lowerKey = Darabonba::String::toLower(p.first);
     if (Darabonba::String::hasPrefix(lowerKey, "x-acs-") ||
         lowerKey == "host" || lowerKey == "content-type") {
       canonicalKeys.insert(lowerKey);
-      tmpHeaders[lowerKey].emplace_back(std::move(lowerKey));
+      tmpHeaders[lowerKey].emplace(p.second);
     }
   }
 
   std::string canonicalHeaders = "";
-  for (const auto &key : canonicalKeys) {
+  for (const auto &p : tmpHeaders) {
     canonicalHeaders +=
-        key + ':' + Darabonba::Array::join(tmpHeaders[key], ",") + '\n';
+        p.first + ':' +
+        Darabonba::Array::join(p.second.begin(), p.second.end(), ", ") + '\n';
   }
   return {canonicalHeaders, Darabonba::Array::join(canonicalKeys.begin(),
                                                    canonicalKeys.end(), ";")};
@@ -277,7 +278,6 @@ std::string OpenApiUtil::getAuthorization(const Darabonba::Http::Request &req,
       .append(signedHeaders)
       .append("\n")
       .append(payload);
-  // TODO
   Darabonba::Bytes canonicalRequestByte;
   canonicalRequestByte.assign(canonicalRequest.begin(), canonicalRequest.end());
   auto strToSign = signatureAlgorithm + '\n' +

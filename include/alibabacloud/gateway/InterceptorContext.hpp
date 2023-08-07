@@ -1,11 +1,12 @@
 #ifndef ALIBABACLOUD_GATEWAY_INTERCEPTORCONTEXT_H_
 #define ALIBABACLOUD_GATEWAY_INTERCEPTORCONTEXT_H_
 
-#include <alibabacloud/Response.hpp>
+#include <alibabacloud/Type.hpp>
 #include <alibabacloud/credential/Client.hpp>
 #include <darabonba/Model.hpp>
 #include <darabonba/Stream.hpp>
 #include <darabonba/http/Header.hpp>
+#include <darabonba/http/MCurlResponse.hpp>
 #include <darabonba/http/Query.hpp>
 
 namespace Alibabacloud {
@@ -18,7 +19,7 @@ public:
       DARABONBA_PTR_TO_JSON(action, action_);
       DARABONBA_PTR_TO_JSON(authType, authType_);
       DARABONBA_PTR_TO_JSON(bodyType, bodyType_);
-      DARABONBA_PTR_TO_JSON(body, body_);
+      DARABONBA_ANY_TO_JSON(body, body_);
       DARABONBA_PTR_TO_JSON(credential, credential_);
       DARABONBA_PTR_TO_JSON(headers, headers_);
       DARABONBA_PTR_TO_JSON(hostMap, hostMap_);
@@ -40,7 +41,7 @@ public:
       DARABONBA_PTR_FROM_JSON(action, action_);
       DARABONBA_PTR_FROM_JSON(authType, authType_);
       DARABONBA_PTR_FROM_JSON(bodyType, bodyType_);
-      DARABONBA_PTR_FROM_JSON(body, body_);
+      DARABONBA_ANY_FROM_JSON(body, body_);
       DARABONBA_PTR_FROM_JSON(credential, credential_);
       DARABONBA_PTR_FROM_JSON(headers, headers_);
       DARABONBA_PTR_FROM_JSON(hostMap, hostMap_);
@@ -122,13 +123,13 @@ public:
     }
 
     bool hasBody() const { return this->body_ != nullptr; }
-    const Darabonba::Json &body() const { DARABONBA_PTR_GET(body_); }
-    Darabonba::Json &body() { DARABONBA_PTR_GET(body_); }
+    const Darabonba::Json &body() const { DARABONBA_GET(body_); }
+    Darabonba::Json &body() { DARABONBA_GET(body_); }
     Request &setBody(const Darabonba::Json &body) {
-      DARABONBA_PTR_SET_VALUE(body_, body);
+      DARABONBA_SET_VALUE(body_, body);
     }
     Request &setBody(Darabonba::Json &&body) {
-      DARABONBA_PTR_SET_RVALUE(body_, body);
+      DARABONBA_SET_RVALUE(body_, body);
     }
 
     bool hasCredential() const { return this->credential_ != nullptr; }
@@ -259,14 +260,6 @@ public:
     Request &setStream(std::shared_ptr<Darabonba::IStream> stream) {
       DARABONBA_SET_VALUE(stream_, stream);
     }
-    // const Darabonba::IStream &stream() const { DARABONBA_PTR_GET(stream_); }
-    // Darabonba::IStream &stream() { DARABONBA_PTR_GET(stream); }
-    // Request &setStream(const Darabonba::IStream &stream) {
-    //   DARABONBA_PTR_SET_VALUE(stream_, stream);
-    // }
-    // Request &setStream(Darabonba::IStream &&stream) {
-    //   DARABONBA_PTR_SET_RVALUE(stream_, stream);
-    // }
 
     bool hasStyle() const { return this->style_ != nullptr; }
     std::string style() const { DARABONBA_PTR_GET_DEFAULT(style_, ""); }
@@ -299,7 +292,7 @@ public:
     std::shared_ptr<std::string> action_ = nullptr;
     std::shared_ptr<std::string> authType_ = nullptr;
     std::shared_ptr<std::string> bodyType_ = nullptr;
-    std::shared_ptr<Darabonba::Json> body_ = nullptr;
+    Darabonba::Json body_ = nullptr;
     std::shared_ptr<Credential::Client> credential_ = nullptr;
     std::shared_ptr<Darabonba::Http::Header> headers_ = nullptr;
     std::shared_ptr<std::map<std::string, std::string>> hostMap_ = nullptr;
@@ -508,12 +501,10 @@ public:
     bool hasDeserializedBody() const {
       return this->deserializedBody_ != nullptr;
     }
-    const Alibabacloud::Response::Body &deserializedBody() const {
+    const StreamJson &deserializedBody() const {
       DARABONBA_PTR_GET(deserializedBody_);
     }
-    Alibabacloud::Response::Body &deserializedBody() {
-      DARABONBA_PTR_GET(deserializedBody_);
-    }
+    StreamJson &deserializedBody() { DARABONBA_PTR_GET(deserializedBody_); }
     Response &setDeserializedBody(const Darabonba::Json &deserializedBody) {
       DARABONBA_PTR_SET_VALUE(deserializedBody_, deserializedBody);
     }
@@ -545,7 +536,7 @@ public:
 
   protected:
     std::shared_ptr<Darabonba::Http::MCurlResponseBody> body_ = nullptr;
-    std::shared_ptr<Alibabacloud::Response::Body> deserializedBody_ = nullptr;
+    std::shared_ptr<StreamJson> deserializedBody_ = nullptr;
     std::shared_ptr<Darabonba::Http::Header> headers_ = nullptr;
     std::shared_ptr<int64_t> statusCode_ = nullptr;
   };

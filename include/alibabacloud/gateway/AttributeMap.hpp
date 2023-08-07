@@ -7,12 +7,12 @@ namespace Alibabacloud {
 namespace Gateway {
 class AttributeMap : public Darabonba::Model {
   friend void to_json(Darabonba::Json &j, const AttributeMap &obj) {
-    DARABONBA_PTR_TO_JSON(attributes, attributes_);
+    DARABONBA_ANY_TO_JSON(attributes, attributes_);
     DARABONBA_PTR_TO_JSON(key, key_);
   }
 
   friend void from_json(const Darabonba::Json &j, AttributeMap &obj) {
-    DARABONBA_PTR_FROM_JSON(attributes, attributes_);
+    DARABONBA_ANY_FROM_JSON(attributes, attributes_);
     DARABONBA_PTR_FROM_JSON(key, key_);
   }
 
@@ -42,13 +42,13 @@ public:
   }
 
   bool hasAttributes() const { return this->attributes_ != nullptr; }
-  const Darabonba::Json &attributes() const { DARABONBA_PTR_GET(attributes_); }
-  Darabonba::Json &getAttributes() { DARABONBA_PTR_GET(attributes_); }
+  const Darabonba::Json &attributes() const { DARABONBA_GET(attributes_); }
+  Darabonba::Json &attributes() { DARABONBA_GET(attributes_); }
   AttributeMap &setAttributes(const Darabonba::Json &attributes) {
-    DARABONBA_PTR_SET_VALUE(attributes_, attributes);
+    DARABONBA_SET_VALUE(attributes_, attributes);
   }
   AttributeMap &setAttributes(Darabonba::Json &&attributes) {
-    DARABONBA_PTR_SET_RVALUE(attributes_, attributes);
+    DARABONBA_SET_RVALUE(attributes_, attributes);
   }
 
   bool hasKey() const { return this->key_ != nullptr; }
@@ -64,7 +64,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<Darabonba::Json> attributes_ = nullptr;
+  Darabonba::Json attributes_ = nullptr;
   std::shared_ptr<std::map<std::string, std::string>> key_ = nullptr;
 };
 } // namespace Gateway

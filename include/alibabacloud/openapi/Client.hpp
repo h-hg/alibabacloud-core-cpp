@@ -1,12 +1,12 @@
 #ifndef ALIBABACLOUD_OPENAPI_CLIENT_H_
 #define ALIBABACLOUD_OPENAPI_CLIENT_H_
 
-#include <alibabacloud/Response.hpp>
 #include <alibabacloud/gateway/SPI.hpp>
 #include <alibabacloud/openapi/Config.hpp>
 #include <alibabacloud/openapi/GlobalParameters.hpp>
-#include <alibabacloud/openapi/OpenApiRequest.hpp>
 #include <alibabacloud/openapi/Params.hpp>
+#include <alibabacloud/openapi/Request.hpp>
+#include <alibabacloud/openapi/Response.hpp>
 #include <darabonba/Model.hpp>
 #include <darabonba/RuntimeOptions.hpp>
 #include <darabonba/Util.hpp>
@@ -26,32 +26,29 @@ public:
   Response doRPCRequest(const std::string &action, const std::string &version,
                         const std::string &protocol, const std::string &method,
                         const std::string &authType,
-                        const std::string &bodyType,
-                        const OpenApiRequest &request,
+                        const std::string &bodyType, const Request &request,
                         const Darabonba::RuntimeOptions &runtime);
 
   Response doROARequest(const std::string &action, const std::string &version,
                         const std::string &protocol, const std::string &method,
                         const std::string &authType,
                         const std::string &pathname,
-                        const std::string &bodyType,
-                        const OpenApiRequest &request,
+                        const std::string &bodyType, const Request &request,
                         const Darabonba::RuntimeOptions &runtime);
 
   Response
   doROARequestWithForm(const std::string &action, const std::string &version,
                        const std::string &protocol, const std::string &method,
                        const std::string &authType, const std::string &pathname,
-                       const std::string &bodyType,
-                       const OpenApiRequest &request,
+                       const std::string &bodyType, const Request &request,
                        const Darabonba::RuntimeOptions &runtime);
 
-  Response doRequest(const Params &params, const OpenApiRequest &request,
+  Response doRequest(const Params &params, const Request &request,
                      const Darabonba::RuntimeOptions &runtime);
 
-  Response execute(const Params &params, const OpenApiRequest &request,
+  Response execute(const Params &params, const Request &request,
                    const Darabonba::RuntimeOptions &runtime);
-  Response callApi(const Params &params, const OpenApiRequest &request,
+  Response callApi(const Params &params, const Request &request,
                    const Darabonba::RuntimeOptions &runtime);
 
   /**
@@ -59,7 +56,7 @@ public:
    * @return user agent
    */
   std::string getUserAgent() {
-    return Darabonba::Util::getUserAgent(_userAgent);
+    return Darabonba::Util::getUserAgent(userAgent_);
   }
 
   /**
@@ -67,7 +64,7 @@ public:
    * @return accesskey id
    */
   std::string getAccessKeyId() {
-    return _credential.empty() ? "" : _credential.getAccessKeyId();
+    return credential_.empty() ? "" : credential_.getAccessKeyId();
   }
 
   /**
@@ -75,7 +72,7 @@ public:
    * @return accesskey secret
    */
   std::string getAccessKeySecret() {
-    return _credential.empty() ? "" : _credential.getAccessKeySecret();
+    return credential_.empty() ? "" : credential_.getAccessKeySecret();
   }
 
   /**
@@ -83,7 +80,7 @@ public:
    * @return security token
    */
   std::string getSecurityToken() {
-    return _credential.empty() ? "" : _credential.getSecurityToken();
+    return credential_.empty() ? "" : credential_.getSecurityToken();
   }
 
   /**
@@ -91,7 +88,7 @@ public:
    * @return bearer token
    */
   std::string getBearerToken() {
-    return _credential.empty() ? "" : _credential.getBearerToken();
+    return credential_.empty() ? "" : credential_.getBearerToken();
   }
 
   /**
@@ -99,7 +96,7 @@ public:
    * @return credential type e.g. access_key
    */
   std::string getType() {
-    return _credential.empty() ? "" : _credential.getType();
+    return credential_.empty() ? "" : credential_.getType();
   }
 
   /**
@@ -122,7 +119,7 @@ public:
    * @param spi.
    */
   Client &setGatewayClient(std::shared_ptr<Gateway::SPI> spi) {
-    DARABONBA_SET_VALUE(_spi, spi);
+    DARABONBA_SET_VALUE(spi_, spi);
   }
 
   /**
@@ -130,79 +127,79 @@ public:
    * @param headers headers for debug, this header can be used only once.
    */
   Client &setRpcHeaders(const Darabonba::Http::Header &headers) {
-    DARABONBA_SET_VALUE(_headers, headers);
+    DARABONBA_SET_VALUE(headers_, headers);
   }
 
   Client &setRpcHeaders(Darabonba::Http::Header &&headers) {
-    DARABONBA_SET_RVALUE(_headers, headers);
+    DARABONBA_SET_RVALUE(headers_, headers);
   }
 
   /**
    * get RPC header for debug
    */
   const Darabonba::Http::Header &getRpcHeaders() const {
-    DARABONBA_GET(_headers);
+    DARABONBA_GET(headers_);
   }
-  Darabonba::Http::Header &getRpcHeaders() { DARABONBA_GET(_headers); }
+  Darabonba::Http::Header &getRpcHeaders() { DARABONBA_GET(headers_); }
 
 protected:
-  std::string _endpoint;
+  std::string endpoint_;
 
-  std::string _regionId;
+  std::string regionId_;
 
-  std::string _protocol;
+  std::string protocol_;
 
-  std::string _method;
+  std::string method_;
 
-  std::string _userAgent;
+  std::string userAgent_;
 
-  std::string _endpointRule;
+  std::string endpointRule_;
 
-  std::map<std::string, std::string> _endpointMap;
+  std::map<std::string, std::string> endpointMap_;
 
-  std::string _suffix;
+  std::string suffix_;
 
-  int64_t _readTimeout;
+  int64_t readTimeout_;
 
-  int64_t _connectTimeout;
+  int64_t connectTimeout_;
 
-  std::string _httpProxy;
+  std::string httpProxy_;
 
-  std::string _httpsProxy;
+  std::string httpsProxy_;
 
-  std::string _socks5Proxy;
+  std::string socks5Proxy_;
 
-  std::string _socks5NetWork;
+  std::string socks5NetWork_;
 
-  std::string _noProxy;
+  std::string noProxy_;
 
-  std::string _network;
+  std::string network_;
 
-  std::string _productId;
+  std::string productId_;
 
-  int64_t _maxIdleConns;
+  int64_t maxIdleConns_;
 
-  std::string _endpointType;
+  std::string endpointType_;
 
-  std::string _openPlatformEndpoint;
+  std::string openPlatformEndpoint_;
 
-  Credential::Client _credential;
+  Credential::Client credential_;
 
-  std::string _signatureVersion;
+  std::string signatureVersion_;
 
-  std::string _signatureAlgorithm;
+  std::string signatureAlgorithm_;
 
-  Darabonba::Http::Header _headers;
+  Darabonba::Http::Header headers_;
 
-  std::shared_ptr<Gateway::SPI> _spi;
+  std::shared_ptr<Gateway::SPI> spi_;
 
-  GlobalParameters _globalParameters;
+  GlobalParameters globalParameters_;
 
-  std::string _key;
+  std::string key_;
 
-  std::string _cert;
+  std::string cert_;
 
-  std::string _ca;
+  std::string ca_;
 };
 } // namespace OpenApi
 } // namespace Alibabacloud

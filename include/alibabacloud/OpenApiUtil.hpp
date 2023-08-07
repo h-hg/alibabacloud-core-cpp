@@ -20,18 +20,9 @@ public:
   static void convert(const Darabonba::Model &body, Darabonba::Model &content);
 
   static std::string getStringToSign(const Darabonba::Http::Request &request);
-  static std::string
-  getStringToSign(std::shared_ptr<Darabonba::Http::Request> request) {
-    return request ? getStringToSign(*request) : "";
-  }
 
   static std::string getROASignature(const std::string &stringToSign,
                                      const std::string &secret);
-  static std::string getROASignature(std::shared_ptr<std::string> stringToSign,
-                                     std::shared_ptr<std::string> secret) {
-    return stringToSign && secret ? getROASignature(*stringToSign, *secret)
-                                  : "";
-  }
 
   static std::string toForm(const Darabonba::Json &filter);
 
@@ -43,25 +34,11 @@ public:
   }
 
   static std::map<std::string, std::string>
-  query(std::shared_ptr<Darabonba::Json> filter) {
-    if (!filter)
-      return {};
-    return query(*filter);
-  }
-  static std::map<std::string, std::string>
   query(const Darabonba::Json &filter);
 
   static std::string
   getRPCSignature(const std::map<std::string, std::string> &signedParams,
                   const std::string &method, const std::string &secret);
-  static std::string getRPCSignature(
-      std::shared_ptr<std::map<std::string, std::string>> signedParams,
-      std::shared_ptr<std::string> method,
-      std::shared_ptr<std::string> secret) {
-    return signedParams && method && secret
-               ? getRPCSignature(*signedParams, *method, *secret)
-               : "";
-  }
 
   static std::string
   arrayToStringWithSpecifiedStyle(const Darabonba::Json &array,
@@ -70,9 +47,6 @@ public:
 
   static Darabonba::Json parseToMap(const Darabonba::Json &input) {
     return input;
-  }
-  static Darabonba::Json parseToMap(std::shared_ptr<Darabonba::Json> input) {
-    return input ? parseToMap(*input) : Darabonba::Json();
   }
 
   static std::string getEndpoint(const std::string &endpoint,
@@ -89,17 +63,7 @@ public:
     }
     return ret;
   }
-  static std::string getEndpoint(std::shared_ptr<std::string> endpoint,
-                                 std::shared_ptr<bool> useAccelerate,
-                                 std::shared_ptr<std::string> endpointType) {
-    return endpoint && useAccelerate && endpointType
-               ? getEndpoint(*endpoint, *useAccelerate, *endpointType)
-               : "";
-  }
 
-  static std::string hexEncode(std::shared_ptr<Darabonba::Bytes> raw) {
-    return raw ? hexEncode(*raw) : "";
-  }
   static std::string hexEncode(const Darabonba::Bytes &raw) {
     return Darabonba::Encode::Encoder::hexEncode(raw);
   }
@@ -116,44 +80,19 @@ public:
     }
     return {};
   }
-  static Darabonba::Bytes
-  hash(std::shared_ptr<Darabonba::Bytes> raw,
-       std::shared_ptr<std::string> signatureAlgorithm) {
-    return raw && signatureAlgorithm ? hash(*raw, *signatureAlgorithm)
-                                     : Darabonba::Bytes();
-  }
 
   static std::string getAuthorization(const Darabonba::Http::Request &request,
                                       const std::string &signatureAlgorithm,
                                       const std::string &payload,
                                       const std::string &accessKey,
                                       const std::string &accessKeySecret);
-  static std::string
-  getAuthorization(std::shared_ptr<Darabonba::Http::Request> req,
-                   std::shared_ptr<std::string> signatureAlgorithm,
-                   std::shared_ptr<std::string> payload,
-                   std::shared_ptr<std::string> accessKey,
-                   std::shared_ptr<std::string> accessKeySecret) {
-    if (!req || !signatureAlgorithm || !payload || !accessKey ||
-        !accessKeySecret) {
-      return "";
-    }
-    return getAuthorization(*req, *signatureAlgorithm, *payload, *accessKey,
-                            *accessKeySecret);
-  }
 
   static std::string getEncodePath(const std::string &path) {
     return Darabonba::Encode::Encoder::pathEncode(path);
   }
-  static std::string getEncodePath(std::shared_ptr<std::string> path) {
-    return path ? getEncodeParam(*path) : "";
-  }
 
   static std::string getEncodeParam(const std::string &param) {
     return Darabonba::Encode::Encoder::percentEncode(param);
-  }
-  static std::string getEncodeParam(std::shared_ptr<std::string> param) {
-    return param ? getEncodeParam(*param) : "";
   }
 
   static Darabonba::Bytes signatureMethod(const std::string &stringToSign,
