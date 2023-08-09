@@ -1,17 +1,13 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_CONSTANT_H_
-#define ALIBABACLOUD_CREDENTIAL_CONSTANT_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_CONSTANT_HPP_
+#define ALIBABACLOUD_CREDENTIAL_CONSTANT_HPP_
 #include <string>
 namespace Alibabacloud {
 namespace Credential {
 class Constant {
 public:
-  static const std::string SYSTEM_ACCESSKEYID;
-  static const std::string SYSTEM_ACCESSKEYSECRET;
-  // static const std::string DEFAULT_CREDENTIALS_FILE_PATH =
-  // System.getProperty("user.home") + "/.alibabacloud/credentials.ini";
-
+  // Ini
   static const std::string INI_ACCESS_KEY_ID;
-  static const std::string INI_ACCESS_KEY_IDSECRET;
+  static const std::string INI_ACCESS_KEY_SECRET;
   static const std::string INI_TYPE;
   static const std::string INI_TYPE_RAM;
   static const std::string INI_TYPE_ARN;
@@ -26,10 +22,9 @@ public:
   static const std::string INI_POLICY;
   static const std::string INI_OIDC_PROVIDER_ARN;
   static const std::string INI_OIDC_TOKEN_FILE_PATH;
-  static const long TSC_VALID_TIME_SECONDS;
-  static const std::string DEFAULT_REGION;
   static const std::string INI_ENABLE;
 
+  // Type
   static const std::string ACCESS_KEY;
   static const std::string STS;
   static const std::string ECS_RAM_ROLE;

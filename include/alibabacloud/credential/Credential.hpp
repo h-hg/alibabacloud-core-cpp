@@ -1,8 +1,7 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_CREDENTIAL_H_
-#define ALIBABACLOUD_CREDENTIAL_CREDENTIAL_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_CREDENTIAL_HPP_
+#define ALIBABACLOUD_CREDENTIAL_CREDENTIAL_HPP_
 
 #include <alibabacloud/credential/Config.hpp>
-#include <alibabacloud/credential/provider/Provider.hpp>
 #include <darabonba/Model.hpp>
 #include <memory>
 #include <string>

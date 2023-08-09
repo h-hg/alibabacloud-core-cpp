@@ -1,5 +1,5 @@
-#ifndef ALIBABACLOUD_PROVIDER_BEARERTOKENPROVIDER_H_
-#define ALIBABACLOUD_PROVIDER_BEARERTOKENPROVIDER_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_BEARERTOKENPROVIDER_HPP_
+#define ALIBABACLOUD_CREDENTIAL_BEARERTOKENPROVIDER_HPP_
 
 #include <alibabacloud/credential/Config.hpp>
 #include <alibabacloud/credential/Constant.hpp>
@@ -14,6 +14,9 @@ public:
   BearerTokenProvider(std::shared_ptr<Config> config) {
     credential_.setBearerToken(config->bearerToken()).setType(Constant::BEARER);
   }
+  BearerTokenProvider(const std::string &bearToken) {
+    credential_.setBearerToken(bearToken).setType(Constant::BEARER);
+  }
 
   virtual ~BearerTokenProvider() {}
 
@@ -23,7 +26,7 @@ public:
   }
 
 protected:
-  std::shared_ptr<std::string> bearerToken_;
+  mutable Credential credential_;
 };
 } // namespace Credential
 

@@ -1,5 +1,5 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_RSAKEYPAIRPROVIDER_H_
-#define ALIBABACLOUD_CREDENTIAL_RSAKEYPAIRPROVIDER_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_RSAKEYPAIRPROVIDER_HPP_
+#define ALIBABACLOUD_CREDENTIAL_RSAKEYPAIRPROVIDER_HPP_
 #include <alibabacloud/credential/Config.hpp>
 #include <alibabacloud/credential/Constant.hpp>
 #include <alibabacloud/credential/provider/NeedFreshProvider.hpp>
@@ -9,62 +9,36 @@
 namespace Alibabacloud {
 namespace Credential {
 
-class RsaKeyPairProvider : public NeedFreshedProvider,
+class RsaKeyPairProvider : public NeedFreshProvider,
                            std::enable_shared_from_this<RsaKeyPairProvider> {
 public:
-  RsaKeyPairProvider(std::shared_ptr<Config> config,
-                     const std::string regionId = "cn-hangzhou")
-      : config_(config), regionId_(regionId) {
-    credential_.setAccessKeyId(config_->accessKeyId())
-        .setAccessKeySecret(config_->accessKeySecret())
+  RsaKeyPairProvider(std::shared_ptr<Config> config)
+      : durationSeconds_(config->durationSeconds()),
+        regionId_(config->regionId()), stsEndpoint_(config->stsEndpoint()) {
+    credential_.setAccessKeyId(config->accessKeyId())
+        .setAccessKeySecret(config->accessKeySecret())
         .setType(Constant::RSA_KEY_PAIR);
   }
-  //  RsaKeyPairProvider(const std::string &roleArn, const std::string
-  //  &accessKeyId,
-  //                     const std::string &accessKeySecret,
-  //                     const std::string &regionId,
-  //                     const std::string &roleSessionName,
-  //                     const std::string &policy, int durationSeconds)
-  //      : roleArn_(std::make_shared<std::string>(roleArn)),
-  //        regionId_(std::make_shared<std::string>(regionId)),
-  //        roleSessionName_(std::make_shared<std::string>(roleSessionName)),
-  //        policy_(std::make_shared<std::string>(policy)),
-  //        durationSeconds_(std::make_shared<int64_t>(durationSeconds)) {}
-  //
-  //  RsaKeyPairProvider(const Config &config)
-  //      : roleArn_(config.hasRoleArn()
-  //                     ? std::make_shared<std::string>(config.getRoleArn())
-  //                     : nullptr),
-  //        regionId_(std::make_shared<std::string>("cn-hangzhou")),
-  //        roleSessionName_(
-  //            config.hasRoleSessionName()
-  //                ? std::make_shared<std::string>(config.getRoleSessionName())
-  //                : nullptr),
-  //        policy_(config.hasPolicy()
-  //                    ? std::make_shared<std::string>(config.getPolicy())
-  //                    : nullptr),
-  //        durationSeconds_(
-  //            config.hasDurationSeconds()
-  //                ? std::make_shared<int64_t>(config.getDurationSeconds())
-  //                : nullptr) {}
+  RsaKeyPairProvider(const std::string &accessKeyId,
+                     const std::string &accessKeySecret,
+                     int64_t durationSeconds = 3600,
+                     const std::string &regionId = "cn-hangzhou",
+                     const std::string &stsEndpoint = "sts.aliyuncs.com")
+      : durationSeconds_(durationSeconds), regionId_(regionId),
+        stsEndpoint_(stsEndpoint) {
+    credential_.setAccessKeyId(accessKeyId)
+        .setAccessKeySecret(accessKeySecret)
+        .setType(Constant::RSA_KEY_PAIR);
+  }
 
   virtual ~RsaKeyPairProvider() {}
-
-  // virtual std::shared_ptr<CredentialBase> getCredential();
 
 protected:
   virtual bool refreshCredential() const override;
 
-  std::shared_ptr<Config> config_ = nullptr;
-  std::string regionId_;
-
-  // std::shared_ptr<std::string> roleArn_;
-  // std::shared_ptr<std::string> accessKeyId_;
-  // std::shared_ptr<std::string> accessKeySecret_;
-  //  std::shared_ptr<std::string> regionId_;
-  //  std::shared_ptr<std::string> roleSessionName_;
-  //  std::shared_ptr<std::string> policy_;
-  //  std::shared_ptr<int64_t> durationSeconds_;
+  int64_t durationSeconds_ = 3600;
+  std::string regionId_ = "cn-hangzhou";
+  std::string stsEndpoint_ = "sts.aliyuncs.com";
 };
 
 } // namespace Credential

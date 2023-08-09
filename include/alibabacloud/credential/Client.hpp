@@ -1,5 +1,5 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_CLIENT_H_
-#define ALIBABACLOUD_CREDENTIAL_CLIENT_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_CLIENT_HPP_
+#define ALIBABACLOUD_CREDENTIAL_CLIENT_HPP_
 
 #include <alibabacloud/credential/Config.hpp>
 #include <alibabacloud/credential/provider/Provider.hpp>
@@ -23,20 +23,10 @@ public:
   Client() = default;
   Client(const Config &obj)
       : config_(std::make_shared<Config>(obj)),
-        provider_(makeProvider(config_)) {
-    if (provider_ != nullptr) {
-      // set the type, for toMap/fromMap
-      config_->setType(provider_->getCredential().type());
-    }
-  }
+        provider_(makeProvider(config_)) {}
   Client(Config &&obj)
       : config_(std::make_shared<Config>(std::move(obj))),
-        provider_(makeProvider(config_)) {
-    if (provider_ != nullptr) {
-      // set the type, for toMap/fromMap
-      config_->setType(provider_->getCredential().type());
-    }
-  }
+        provider_(makeProvider(config_)) {}
   Client(std::shared_ptr<Config> config)
       : config_(config), provider_(makeProvider(config_)) {}
   virtual ~Client() = default;
@@ -82,6 +72,8 @@ private:
   static std::shared_ptr<Provider> makeProvider(std::shared_ptr<Config> config);
 
   std::shared_ptr<Config> config_ = nullptr;
+
+  // using shared_ptr to enable copy
   std::shared_ptr<Provider> provider_ = nullptr;
 };
 

@@ -12,7 +12,7 @@ bool RsaKeyPairProvider::refreshCredential() const {
       {"Action", "GenerateSessionAccessKey"},
       {"Format", "JSON"},
       {"Version", "2015-04-01"},
-      {"DurationSeconds", std::to_string(config_->durationSeconds())},
+      {"DurationSeconds", std::to_string(durationSeconds_)},
       {"AccessKeyId", credential_.accessKeyId()},
       {"RegionId", regionId_},
       {"SignatureMethod", "HMAC-SHA1"},
@@ -28,27 +28,28 @@ bool RsaKeyPairProvider::refreshCredential() const {
           stringToSign, credential_.accessKeySecret()));
   query.emplace("Signature", signature);
 
-  Darabonba::Http::Request req(std::string("https://sts.aliyuncs.com"));
-  req.query() = query;
+  Darabonba::Http::Request req;
+  req.url().setScheme("https");
+  req.header()["host"] = stsEndpoint_;
+  req.setQuery(std::move(query));
+
   auto future = Darabonba::Core::doAction(req);
   auto resp = future.get();
-  if (resp->statusCode() == 200) {
-    auto result = Darabonba::Util::readAsJSON(resp->body());
-    if (result["Code"].get<std::string>() == "Success") {
-      auto sessionAccessKey = result["SessionAccessKey"];
-      std::string accessKeyId =
-                      sessionAccessKey["SessionAccessKeyId"].get<std::string>(),
-                  accessKeySecret = sessionAccessKey["SessionAccessKeySecret"]
-                                        .get<std::string>();
-      auto expiration =
-          strtotime(sessionAccessKey["Expiration"].get<std::string>());
-      this->expiration_ = expiration;
-      credential_.setAccessKeyId(accessKeyId)
-          .setAccessKeySecret(accessKeySecret);
-      return true;
-    }
+  if (resp->statusCode() != 200) {
+    throw Darabonba::Exception(Darabonba::Util::readAsString(resp->body()));
   }
-  return false;
+  auto result = Darabonba::Util::readAsJSON(resp->body());
+  if (result["Code"].get<std::string>() != "Success") {
+    throw Darabonba::Exception(result.dump());
+  }
+  auto &sessionAccessKey = result["SessionAccessKey"];
+  this->expiration_ =
+      strtotime(sessionAccessKey["Expiration"].get<std::string>());
+  credential_
+      .setAccessKeyId(sessionAccessKey["SessionAccessKeyId"].get<std::string>())
+      .setAccessKeySecret(
+          sessionAccessKey["SessionAccessKeySecret"].get<std::string>());
+  return true;
 }
 
 } // namespace Credential

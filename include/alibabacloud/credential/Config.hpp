@@ -1,22 +1,27 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_CONFIG_H_
-#define ALIBABACLOUD_CREDENTIAL_CONFIG_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_CONFIG_HPP_
+#define ALIBABACLOUD_CREDENTIAL_CONFIG_HPP_
 
 #include <darabonba/Model.hpp>
 #include <memory>
 
 namespace Alibabacloud {
 namespace Credential {
-
 class Config : public Darabonba::Model {
   friend void to_json(Darabonba::Json &j, const Config &obj) {
     DARABONBA_PTR_TO_JSON(accessKeyId, accessKeyId_);
     DARABONBA_PTR_TO_JSON(accessKeySecret, accessKeySecret_);
     DARABONBA_PTR_TO_JSON(bearerToken, bearerToken_);
+    DARABONBA_PTR_TO_JSON(credentialsURL, credentialsURL_);
     DARABONBA_PTR_TO_JSON(durationSeconds, durationSeconds_);
     DARABONBA_PTR_TO_JSON(externalId, externalId_);
+    DARABONBA_PTR_TO_JSON(host, host_);
+    DARABONBA_PTR_TO_JSON(oidcProviderArn, oidcProviderArn_);
+    DARABONBA_PTR_TO_JSON(oidcTokenFilePath, oidcTokenFilePath_);
     DARABONBA_PTR_TO_JSON(policy, policy_);
     DARABONBA_PTR_TO_JSON(privateKeyFile, privateKeyFile_);
+    DARABONBA_PTR_TO_JSON(proxy, proxy_);
     DARABONBA_PTR_TO_JSON(publicKeyId, publicKeyId_);
+    DARABONBA_PTR_TO_JSON(regionId, regionId_);
     DARABONBA_PTR_TO_JSON(roleArn, roleArn_);
     DARABONBA_PTR_TO_JSON(roleName, roleName_);
     DARABONBA_PTR_TO_JSON(roleSessionExpiration, roleSessionExpiration_);
@@ -30,11 +35,17 @@ class Config : public Darabonba::Model {
     DARABONBA_PTR_FROM_JSON(accessKeyId, accessKeyId_);
     DARABONBA_PTR_FROM_JSON(accessKeySecret, accessKeySecret_);
     DARABONBA_PTR_FROM_JSON(bearerToken, bearerToken_);
+    DARABONBA_PTR_FROM_JSON(credentialsURL, credentialsURL_);
     DARABONBA_PTR_FROM_JSON(durationSeconds, durationSeconds_);
     DARABONBA_PTR_FROM_JSON(externalId, externalId_);
+    DARABONBA_PTR_FROM_JSON(host, host_);
+    DARABONBA_PTR_FROM_JSON(oidcProviderArn, oidcProviderArn_);
+    DARABONBA_PTR_FROM_JSON(oidcTokenFilePath, oidcTokenFilePath_);
     DARABONBA_PTR_FROM_JSON(policy, policy_);
     DARABONBA_PTR_FROM_JSON(privateKeyFile, privateKeyFile_);
+    DARABONBA_PTR_FROM_JSON(proxy, proxy_);
     DARABONBA_PTR_FROM_JSON(publicKeyId, publicKeyId_);
+    DARABONBA_PTR_FROM_JSON(regionId, regionId_);
     DARABONBA_PTR_FROM_JSON(roleArn, roleArn_);
     DARABONBA_PTR_FROM_JSON(roleName, roleName_);
     DARABONBA_PTR_FROM_JSON(roleSessionExpiration, roleSessionExpiration_);
@@ -52,6 +63,9 @@ public:
 
   virtual ~Config() = default;
 
+  Config &operator=(const Config &) = default;
+  Config &operator=(Config &&) = default;
+
   virtual void validate() const override {}
 
   virtual void fromMap(const Darabonba::Json &obj) override {
@@ -67,15 +81,17 @@ public:
 
   virtual bool empty() const override {
     return accessKeyId_ == nullptr && accessKeySecret_ == nullptr &&
-           bearerToken_ == nullptr && durationSeconds_ == nullptr &&
-           externalId_ == nullptr && policy_ == nullptr &&
-           privateKeyFile_ == nullptr && publicKeyId_ == nullptr &&
+           bearerToken_ == nullptr && credentialsURL_ == nullptr &&
+           durationSeconds_ == nullptr && externalId_ == nullptr &&
+           host_ == nullptr && oidcProviderArn_ == nullptr &&
+           oidcTokenFilePath_ == nullptr && policy_ == nullptr &&
+           privateKeyFile_ == nullptr && proxy_ == nullptr &&
+           publicKeyId_ == nullptr && regionId_ == nullptr &&
            roleArn_ == nullptr && roleName_ == nullptr &&
            roleSessionExpiration_ == nullptr && roleSessionName_ == nullptr &&
            securityToken_ == nullptr && stsEndpoint_ == nullptr &&
            type_ == nullptr;
   }
-
   bool hasAccessKeyId() const { return this->accessKeyId_ != nullptr; }
   std::string accessKeyId() const {
     DARABONBA_PTR_GET_DEFAULT(accessKeyId_, "");
@@ -109,6 +125,17 @@ public:
     DARABONBA_PTR_SET_RVALUE(bearerToken_, bearerToken);
   }
 
+  bool hasCredentialsURL() const { return this->credentialsURL_ != nullptr; }
+  std::string credentialsURL() const {
+    DARABONBA_PTR_GET_DEFAULT(credentialsURL_, "");
+  }
+  Config &setCredentialsURL(const std::string &credentialsURL) {
+    DARABONBA_PTR_SET_VALUE(credentialsURL_, credentialsURL);
+  }
+  Config &setCredentialsURL(std::string &&credentialsURL) {
+    DARABONBA_PTR_SET_RVALUE(credentialsURL_, credentialsURL);
+  }
+
   bool hasDurationSeconds() const { return this->durationSeconds_ != nullptr; }
   int64_t durationSeconds() const {
     DARABONBA_PTR_GET_DEFAULT(durationSeconds_, 0);
@@ -124,6 +151,37 @@ public:
   }
   Config &setExternalId(std::string &&externalId) {
     DARABONBA_PTR_SET_RVALUE(externalId_, externalId);
+  }
+
+  bool hasHost() const { return this->host_ != nullptr; }
+  std::string host() const { DARABONBA_PTR_GET_DEFAULT(host_, ""); }
+  Config &setHost(const std::string &host) {
+    DARABONBA_PTR_SET_VALUE(host_, host);
+  }
+  Config &setHost(std::string &&host) { DARABONBA_PTR_SET_RVALUE(host_, host); }
+
+  bool hasOidcProviderArn() const { return this->oidcProviderArn_ != nullptr; }
+  std::string oidcProviderArn() const {
+    DARABONBA_PTR_GET_DEFAULT(oidcProviderArn_, "");
+  }
+  Config &setOidcProviderArn(const std::string &oidcProviderArn) {
+    DARABONBA_PTR_SET_VALUE(oidcProviderArn_, oidcProviderArn);
+  }
+  Config &setOidcProviderArn(std::string &&oidcProviderArn) {
+    DARABONBA_PTR_SET_RVALUE(oidcProviderArn_, oidcProviderArn);
+  }
+
+  bool hasOidcTokenFilePath() const {
+    return this->oidcTokenFilePath_ != nullptr;
+  }
+  std::string oidcTokenFilePath() const {
+    DARABONBA_PTR_GET_DEFAULT(oidcTokenFilePath_, "");
+  }
+  Config &setOidcTokenFilePath(const std::string &oidcTokenFilePath) {
+    DARABONBA_PTR_SET_VALUE(oidcTokenFilePath_, oidcTokenFilePath);
+  }
+  Config &setOidcTokenFilePath(std::string &&oidcTokenFilePath) {
+    DARABONBA_PTR_SET_RVALUE(oidcTokenFilePath_, oidcTokenFilePath);
   }
 
   bool hasPolicy() const { return this->policy_ != nullptr; }
@@ -146,6 +204,15 @@ public:
     DARABONBA_PTR_SET_RVALUE(privateKeyFile_, privateKeyFile);
   }
 
+  bool hasProxy() const { return this->proxy_ != nullptr; }
+  std::string proxy() const { DARABONBA_PTR_GET_DEFAULT(proxy_, ""); }
+  Config &setProxy(const std::string &proxy) {
+    DARABONBA_PTR_SET_VALUE(proxy_, proxy);
+  }
+  Config &setProxy(std::string &&proxy) {
+    DARABONBA_PTR_SET_RVALUE(proxy_, proxy);
+  }
+
   bool hasPublicKeyId() const { return this->publicKeyId_ != nullptr; }
   std::string publicKeyId() const {
     DARABONBA_PTR_GET_DEFAULT(publicKeyId_, "");
@@ -155,6 +222,15 @@ public:
   }
   Config &setPublicKeyId(std::string &&publicKeyId) {
     DARABONBA_PTR_SET_RVALUE(publicKeyId_, publicKeyId);
+  }
+
+  bool hasRegionId() const { return this->regionId_ != nullptr; }
+  std::string regionId() const { DARABONBA_PTR_GET_DEFAULT(regionId_, ""); }
+  Config &setRegionId(const std::string &regionId) {
+    DARABONBA_PTR_SET_VALUE(regionId_, regionId);
+  }
+  Config &setRegionId(std::string &&regionId) {
+    DARABONBA_PTR_SET_RVALUE(regionId_, regionId);
   }
 
   bool hasRoleArn() const { return this->roleArn_ != nullptr; }
@@ -229,19 +305,29 @@ protected:
   std::shared_ptr<std::string> accessKeyId_ = nullptr;
   std::shared_ptr<std::string> accessKeySecret_ = nullptr;
   std::shared_ptr<std::string> bearerToken_ = nullptr;
-  std::shared_ptr<int64_t> durationSeconds_ = nullptr;
+  std::shared_ptr<std::string> credentialsURL_ = nullptr;
+  std::shared_ptr<int64_t> durationSeconds_ = std::make_shared<int64_t>(3600);
   std::shared_ptr<std::string> externalId_ = nullptr;
+  std::shared_ptr<std::string> host_ = nullptr;
+  std::shared_ptr<std::string> oidcProviderArn_ = nullptr;
+  std::shared_ptr<std::string> oidcTokenFilePath_ = nullptr;
   std::shared_ptr<std::string> policy_ = nullptr;
   std::shared_ptr<std::string> privateKeyFile_ = nullptr;
+  std::shared_ptr<std::string> proxy_ = nullptr;
   std::shared_ptr<std::string> publicKeyId_ = nullptr;
+  std::shared_ptr<std::string> regionId_ =
+      std::make_shared<std::string>("cn-hangzhou");
   std::shared_ptr<std::string> roleArn_ = nullptr;
   std::shared_ptr<std::string> roleName_ = nullptr;
   std::shared_ptr<int64_t> roleSessionExpiration_ = nullptr;
-  std::shared_ptr<std::string> roleSessionName_ = nullptr;
+  std::shared_ptr<std::string> roleSessionName_ =
+      std::make_shared<std::string>("defaultSessionName");
   std::shared_ptr<std::string> securityToken_ = nullptr;
-  std::shared_ptr<std::string> stsEndpoint_ = nullptr;
+  std::shared_ptr<std::string> stsEndpoint_ =
+      std::make_shared<std::string>("sts.aliyuncs.com");
   std::shared_ptr<std::string> type_ = nullptr;
 };
+
 } // namespace Credential
 } // namespace Alibabacloud
 #endif

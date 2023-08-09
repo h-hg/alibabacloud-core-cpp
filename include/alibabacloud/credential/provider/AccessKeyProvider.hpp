@@ -1,5 +1,5 @@
-#ifndef ALIBABACLOUD_PROVIDER_ACCESSKEYPROVIDER_H_
-#define ALIBABACLOUD_PROVIDER_ACCESSKEYPROVIDER_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_ACCESSKEYPROVIDER_HPP_
+#define ALIBABACLOUD_CREDENTIAL_ACCESSKEYPROVIDER_HPP_
 
 #include <alibabacloud/credential/Config.hpp>
 #include <alibabacloud/credential/Constant.hpp>
@@ -18,12 +18,21 @@ public:
         .setAccessKeySecret(config->accessKeySecret())
         .setType(Constant::ACCESS_KEY);
   }
+  AccessKeyProvider(const std::string &accessKeyId,
+                    const std::string &accessKeySecret) {
+    credential_.setAccessKeyId(accessKeyId)
+        .setAccessKeySecret(accessKeySecret)
+        .setType(Constant::ACCESS_KEY);
+  }
   virtual ~AccessKeyProvider() {}
 
   virtual Credential &getCredential() override { return credential_; }
   virtual const Credential &getCredential() const override {
     return credential_;
   }
+
+protected:
+  mutable Credential credential_;
 };
 } // namespace Credential
 

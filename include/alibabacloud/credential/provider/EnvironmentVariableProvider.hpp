@@ -1,15 +1,18 @@
-#ifndef ALIBABACLOUD_CREDENTIAL_PROFILEPROVIDER_HPP_
-#define ALIBABACLOUD_CREDENTIAL_PROFILEPROVIDER_HPP_
+#ifndef ALIBABACLOUD_CREDENTIAL_ENVIRONMENTVARIABLEPROVIDER_HPP_
+#define ALIBABACLOUD_CREDENTIAL_ENVIRONMENTVARIABLEPROVIDER_HPP_
+
+#include <alibabacloud/credential/Constant.hpp>
 #include <alibabacloud/credential/provider/Provider.hpp>
 #include <memory>
 
 namespace Alibabacloud {
 
 namespace Credential {
-class ProfileProvider : public Provider {
+
+class EnvironmentVariableProvider : public Provider {
 public:
-  ProfileProvider() = default;
-  virtual ~ProfileProvider() = default;
+  EnvironmentVariableProvider() = default;
+  virtual ~EnvironmentVariableProvider() {}
 
   virtual Credential &getCredential() override {
     provider_ = createProvider();
@@ -28,10 +31,10 @@ public:
   }
 
 protected:
-
   static std::unique_ptr<Provider> createProvider();
 
   mutable std::unique_ptr<Provider> provider_ = nullptr;
+  mutable Credential credential_;
 };
 
 } // namespace Credential

@@ -1,5 +1,5 @@
-#ifndef ALIBABACLOUD_PROVIDER_NEEDFRESHPROVIDER_H_
-#define ALIBABACLOUD_PROVIDER_NEEDFRESHPROVIDER_H_
+#ifndef ALIBABACLOUD_CREDENTIAL_NEEDFRESHPROVIDER_HPP_
+#define ALIBABACLOUD_CREDENTIAL_NEEDFRESHPROVIDER_HPP_
 
 #include <alibabacloud/credential/provider/Provider.hpp>
 #include <ctime>
@@ -7,11 +7,11 @@
 #include <ctime>
 namespace Alibabacloud {
 namespace Credential {
-class NeedFreshedProvider : public Provider {
+class NeedFreshProvider : public Provider {
 public:
-  NeedFreshedProvider() = default;
-  NeedFreshedProvider(long long expiration) : expiration_(expiration) {}
-  virtual ~NeedFreshedProvider() {}
+  NeedFreshProvider() = default;
+  NeedFreshProvider(long long expiration) : expiration_(expiration) {}
+  virtual ~NeedFreshProvider() {}
 
   virtual Credential &getCredential() override {
     refresh();
@@ -51,7 +51,8 @@ protected:
     return buf;
   }
 
-  mutable int64_t expiration_;
+  mutable Credential credential_;
+  mutable int64_t expiration_ = 0;
 };
 } // namespace Credential
 } // namespace Alibabacloud
