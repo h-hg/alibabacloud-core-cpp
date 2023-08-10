@@ -12,6 +12,7 @@ Darabonba::Lock::SpinLock AuthUtil::lock_;
 bool AuthUtil::setClientType(const std::string &clientType) {
   std::lock_guard<Darabonba::Lock::SpinLock> guard(lock_);
   clientType_ = clientType;
+  return true;
 }
 
 std::string AuthUtil::clientType() {

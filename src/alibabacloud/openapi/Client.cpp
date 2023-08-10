@@ -1,8 +1,9 @@
 #include <alibabacloud/OpenApiUtil.hpp>
-#include <alibabacloud/Type.hpp>
+// #include <alibabacloud/Type.hpp>
 #include <alibabacloud/gateway/AttributeMap.hpp>
 #include <alibabacloud/gateway/InterceptorContext.hpp>
 #include <alibabacloud/openapi/Client.hpp>
+#include <alibabacloud/openapi/Exception.hpp>
 #include <darabonba/Util.hpp>
 #include <darabonba/XML.hpp>
 using namespace std;
@@ -17,12 +18,9 @@ namespace OpenApi {
 Client::Client(const Config &config_) {
   // if (Darabonba::Util::isUnset(config_.toMap())) {
   if (config_.empty()) {
-    throw Exception(
-        Darabonba::Json({{"code", "ParameterMissing"},
-                         {"message", "'config' can not be unset"}}));
+    throw Darabonba::Exception("ParameterMissing: 'config' can not be unset");
   }
 
-  // TODO
   auto config = config_;
   if (!Darabonba::Util::empty(config.accessKeyId()) &&
       !Darabonba::Util::empty(config.accessKeySecret())) {
@@ -32,12 +30,11 @@ Client::Client(const Config &config_) {
       config.setType("access_key");
     }
 
-    Credential::Config credentialConfig = Credential::Config(
-        Darabonba::Json({{"accessKeyId", config.accessKeyId()},
-                         {"type", config.type()},
-                         {"accessKeySecret", config.accessKeySecret()}})
-            .get<std::map<std::string, std::string>>());
-    credentialConfig.setSecurityToken(config.securityToken());
+    Credential::Config credentialConfig;
+    credentialConfig.setAccessKeyId(config.accessKeyId())
+        .setAccessKeySecret(config.accessKeySecret())
+        .setType(config.type())
+        .setSecurityToken(config.securityToken());
     this->credential_ = Credential::Client(credentialConfig);
     // } else if (!Darabonba::Util::isUnset(config.credential())) {
   } else if (config.hasCredential()) {
@@ -218,7 +215,18 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
           Darabonba::Util::is5xx(response_->statusCode())) {
         Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
         Darabonba::Json err = Darabonba::Util::assertAsMap(_res);
-        throw Exception(err);
+        err["statusCode"] = response_->statusCode();
+        Exception error;
+        error.setStatusCode(response_->statusCode())
+            .setMessage("code: " + std::to_string(response_->statusCode()) +
+                        ", " + err.value("Message", err.value("message", "")) +
+                        " request id: " +
+                        err.value("RequestId", err.value("requestId", "")))
+            .setDescription(err.value("Code", err.value("code", "")))
+            .setAccessDeniedDetail(err.value(
+                "AccessDeniedDetail", err.value("accessDeniedDetial", "")))
+            .setData(err);
+        throw error;
       }
 
       if (Darabonba::Util::equalString(bodyType, "binary")) {
@@ -402,7 +410,18 @@ Client::doROARequest(const std::string &action, const std::string &version,
           Darabonba::Util::is5xx(response_->statusCode())) {
         Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
         Darabonba::Json err = Darabonba::Util::assertAsMap(_res);
-        throw Exception(err);
+        err["statusCode"] = response_->statusCode();
+        Exception error;
+        error.setStatusCode(response_->statusCode())
+            .setMessage("code: " + std::to_string(response_->statusCode()) +
+                        ", " + err.value("Message", err.value("message", "")) +
+                        " request id: " +
+                        err.value("RequestId", err.value("requestId", "")))
+            .setDescription(err.value("Code", err.value("code", "")))
+            .setAccessDeniedDetail(err.value(
+                "AccessDeniedDetail", err.value("accessDeniedDetial", "")))
+            .setData(err);
+        throw error;
       }
 
       if (Darabonba::Util::equalString(bodyType, "binary")) {
@@ -594,7 +613,18 @@ Response Client::doROARequestWithForm(
           Darabonba::Util::is5xx(response_->statusCode())) {
         Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
         Darabonba::Json err = Darabonba::Util::assertAsMap(_res);
-        throw Exception(err);
+        err["statusCode"] = response_->statusCode();
+        Exception error;
+        error.setStatusCode(response_->statusCode())
+            .setMessage("code: " + std::to_string(response_->statusCode()) +
+                        ", " + err.value("Message", err.value("message", "")) +
+                        " request id: " +
+                        err.value("RequestId", err.value("requestId", "")))
+            .setDescription(err.value("Code", err.value("code", "")))
+            .setAccessDeniedDetail(err.value(
+                "AccessDeniedDetail", err.value("accessDeniedDetial", "")))
+            .setData(err);
+        throw error;
       }
 
       if (Darabonba::Util::equalString(bodyType, "binary")) {
@@ -633,7 +663,7 @@ Response Client::doROARequestWithForm(
         return ret;
       }
 
-    } catch (RetryableException e) {
+    } catch (Exception e) {
       _lastException = e;
       continue;
     }
@@ -819,10 +849,18 @@ Response Client::doRequest(const Params &params, const Request &request,
           Darabonba::Json _res = Darabonba::Util::readAsJSON(response_->body());
           err = Darabonba::Util::assertAsMap(_res);
         }
-        // TODO
-        std::cout << err << std::endl;
-
-        throw Exception(err);
+        err["statusCode"] = response_->statusCode();
+        Exception error;
+        error.setStatusCode(response_->statusCode())
+            .setMessage("code: " + std::to_string(response_->statusCode()) +
+                        ", " + err.value("Message", err.value("message", "")) +
+                        " request id: " +
+                        err.value("RequestId", err.value("requestId", "")))
+            .setDescription(err.value("Code", err.value("code", "")))
+            .setAccessDeniedDetail(err.value(
+                "AccessDeniedDetail", err.value("accessDeniedDetial", "")))
+            .setData(err);
+        throw error;
       }
 
       if (Darabonba::Util::equalString(params.bodyType(), "binary")) {
@@ -862,7 +900,7 @@ Response Client::doRequest(const Params &params, const Request &request,
         return ret;
       }
 
-    } catch (Alibabacloud::RetryableException e) {
+    } catch (Exception e) {
       _lastException = e;
       continue;
     }
@@ -1017,21 +1055,19 @@ Response Client::execute(const Params &params, const Request &request,
           .setStatusCode(interceptorContext.response().statusCode())
           .setBody(interceptorContext.response().deserializedBody());
       return ret;
-    } catch (Alibabacloud::RetryableException e) {
+    } catch (Exception e) {
       _lastException = e;
       continue;
     }
   }
-  throw Alibabacloud::UnretryableException(_lastRequest, _lastException);
+  throw UnretryableException(_lastRequest, _lastException);
 }
 
 Response Client::callApi(const Params &params, const Request &request,
                          const Darabonba::RuntimeOptions &runtime) {
   // if (Darabonba::Util::isUnset(params.toMap())) {
   if (params.empty()) {
-    throw Exception(
-        Darabonba::Json({{"code", "ParameterMissing"},
-                         {"message", "'params' can not be unset"}}));
+    throw Darabonba::Exception("ParameterMissing: 'params' can not be unset");
   }
 
   // if (Darabonba::Util::isUnset(signatureAlgorithm_) ||
@@ -1078,9 +1114,8 @@ Darabonba::Json Client::defaultAny(Darabonba::Json &inputValue,
 void Client::checkConfig(Config &config) {
   if (Darabonba::Util::empty(endpointRule_) &&
       Darabonba::Util::empty(config.endpoint())) {
-    throw Exception(
-        Darabonba::Json({{"code", "ParameterMissing"},
-                         {"message", "'config.endpoint' can not be empty"}}));
+    throw Darabonba::Exception(
+        "ParameterMissing: 'config.endpoint' can not be empty");
   }
 }
 
