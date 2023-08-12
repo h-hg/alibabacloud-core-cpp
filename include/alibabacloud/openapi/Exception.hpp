@@ -3,6 +3,10 @@
 
 #include <darabonba/Model.hpp>
 #include <darabonba/Type.hpp>
+#include <darabonba/http/Request.hpp>
+
+namespace Alibabacloud {
+namespace OpenApi {
 
 class Exception : public Darabonba::Exception {
 
@@ -48,8 +52,6 @@ public:
     DARABONBA_SET_RVALUE(message_, message);
   }
 
-
-
   const std::string &description() const { return description_; }
   Exception &setDescription(const std::string &description) {
     DARABONBA_SET_VALUE(description_, description);
@@ -75,6 +77,7 @@ public:
   Exception &setData(Darabonba::Json &&data) {
     DARABONBA_SET_RVALUE(data_, data);
   }
+
 protected:
   int statusCode_;
   std::string code_;
@@ -84,21 +87,26 @@ protected:
   Darabonba::Json data_;
 };
 
-class UnretryableException : public Exception {
+class UnretryableException : public Darabonba::Exception {
 public:
   UnretryableException() = default;
   UnretryableException(const Darabonba::Http::Request &lastRequest,
-                       const Exception &lastException = {})
+                       const OpenApi::Exception &lastException = {})
       : lastRequest_(lastRequest), lastException_(lastException) {}
 
-  UnretryableException(const Exception &lastException)
+  UnretryableException(const OpenApi::Exception &lastException)
       : lastException_(lastException) {}
 
   const Darabonba::Http::Request &lastRequest() const { return lastRequest_; }
   const Exception &lLastException() const { return lastException_; }
 
+  const char *what() const noexcept override { return lastException_.what(); }
+
 protected:
   Darabonba::Http::Request lastRequest_;
-  Exception lastException_;
+  OpenApi::Exception lastException_;
 };
+
+} // namespace OpenApi
+} // namespace Alibabacloud
 #endif

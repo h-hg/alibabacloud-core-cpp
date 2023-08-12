@@ -3,6 +3,7 @@
 
 #include <alibabacloud/gateway/SPI.hpp>
 #include <alibabacloud/openapi/Config.hpp>
+#include <alibabacloud/openapi/Exception.hpp>
 #include <alibabacloud/openapi/GlobalParameters.hpp>
 #include <alibabacloud/openapi/Params.hpp>
 #include <alibabacloud/openapi/Request.hpp>

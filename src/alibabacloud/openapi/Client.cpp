@@ -1,12 +1,10 @@
 #include <alibabacloud/OpenApiUtil.hpp>
-// #include <alibabacloud/Type.hpp>
 #include <alibabacloud/gateway/AttributeMap.hpp>
 #include <alibabacloud/gateway/InterceptorContext.hpp>
 #include <alibabacloud/openapi/Client.hpp>
 #include <alibabacloud/openapi/Exception.hpp>
 #include <darabonba/Util.hpp>
 #include <darabonba/XML.hpp>
-using namespace std;
 
 namespace Alibabacloud {
 namespace OpenApi {
@@ -218,6 +216,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
         err["statusCode"] = response_->statusCode();
         Exception error;
         error.setStatusCode(response_->statusCode())
+            .setCode(err.value("Code", err.value("code", "")))
             .setMessage("code: " + std::to_string(response_->statusCode()) +
                         ", " + err.value("Message", err.value("message", "")) +
                         " request id: " +
@@ -413,6 +412,7 @@ Client::doROARequest(const std::string &action, const std::string &version,
         err["statusCode"] = response_->statusCode();
         Exception error;
         error.setStatusCode(response_->statusCode())
+            .setCode(err.value("Code", err.value("code", "")))
             .setMessage("code: " + std::to_string(response_->statusCode()) +
                         ", " + err.value("Message", err.value("message", "")) +
                         " request id: " +
@@ -616,6 +616,7 @@ Response Client::doROARequestWithForm(
         err["statusCode"] = response_->statusCode();
         Exception error;
         error.setStatusCode(response_->statusCode())
+            .setCode(err.value("Code", err.value("code", "")))
             .setMessage("code: " + std::to_string(response_->statusCode()) +
                         ", " + err.value("Message", err.value("message", "")) +
                         " request id: " +
@@ -852,6 +853,7 @@ Response Client::doRequest(const Params &params, const Request &request,
         err["statusCode"] = response_->statusCode();
         Exception error;
         error.setStatusCode(response_->statusCode())
+            .setCode(err.value("Code", err.value("code", "")))
             .setMessage("code: " + std::to_string(response_->statusCode()) +
                         ", " + err.value("Message", err.value("message", "")) +
                         " request id: " +
