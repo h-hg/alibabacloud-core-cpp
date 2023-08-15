@@ -1,6 +1,7 @@
 #ifndef ALIBABACLOUD_OPENAPIUTIL_H_
 #define ALIBABACLOUD_OPENAPIUTIL_H_
 
+#include <alibabacloud/openapi/Config.hpp>
 #include <cstdint>
 #include <ctime>
 #include <darabonba/Model.hpp>
@@ -14,8 +15,8 @@
 #include <vector>
 
 namespace Alibabacloud {
-
-class OpenApiUtil {
+namespace OpenApi {
+class Util {
 public:
   static void convert(const Darabonba::Model &body, Darabonba::Model &content);
 
@@ -115,5 +116,6 @@ protected:
   static void processObject(const Darabonba::Json &obj, std::string key,
                             Darabonba::Json &out);
 };
+} // namespace OpenApi
 } // namespace Alibabacloud
 #endif

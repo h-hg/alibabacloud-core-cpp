@@ -98,7 +98,7 @@ public:
       : lastException_(lastException) {}
 
   const Darabonba::Http::Request &lastRequest() const { return lastRequest_; }
-  const Exception &lLastException() const { return lastException_; }
+  const Exception &lastException() const { return lastException_; }
 
   const char *what() const noexcept override { return lastException_.what(); }
 

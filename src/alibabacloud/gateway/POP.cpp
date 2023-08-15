@@ -1,5 +1,5 @@
 #include <alibabacloud/EndpointUtil.hpp>
-#include <alibabacloud/OpenApiUtil.hpp>
+#include <alibabacloud/openapi/Util.hpp>
 #include <alibabacloud/gateway/POP.hpp>
 #include <darabonba/Array.hpp>
 #include <darabonba/Core.hpp>
@@ -36,7 +36,7 @@ void POP::modifyRequest(InterceptorContext &context,
                         AttributeMap &attributeMap) {
   auto &request = context.request();
   auto &config = context.configuration();
-  auto date = OpenApiUtil::getTimestamp();
+  auto date = OpenApi::Util::getTimestamp();
   request.setHeaders(Darabonba::Core::merge(
                          Darabonba::Json({{"host", config.endpoint()},
                                           {"x-acs-version", request.version()},
@@ -73,7 +73,7 @@ void POP::modifyRequest(InterceptorContext &context,
         request.headers()["content-type"] = "application/json; charset=utf-8";
       } else {
         auto m = Darabonba::Util::assertAsMap(request.body());
-        auto formObj = OpenApiUtil::toForm(m);
+        auto formObj = OpenApi::Util::toForm(m);
         hashedRequestPayload = Darabonba::Encode::Encoder::hexEncode(
             Darabonba::Encode::Encoder::hash(Darabonba::Util::toBytes(formObj),
                                              signatureAlgorithm));

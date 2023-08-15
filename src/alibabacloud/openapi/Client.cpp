@@ -1,4 +1,4 @@
-#include <alibabacloud/OpenApiUtil.hpp>
+#include <alibabacloud/openapi/Util.hpp>
 #include <alibabacloud/gateway/AttributeMap.hpp>
 #include <alibabacloud/gateway/InterceptorContext.hpp>
 #include <alibabacloud/openapi/Client.hpp>
@@ -141,7 +141,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
                   {{"Action", action},
                    {"Format", "json"},
                    {"Version", version},
-                   {"Timestamp", OpenApiUtil::getTimestamp()},
+                   {"Timestamp", Util::getTimestamp()},
                    {"SignatureNonce", Darabonba::Util::getNonce()}}),
               globalQueries,
               [&]() {
@@ -177,7 +177,7 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
       if (request.hasBody()) {
         Darabonba::Json m = Darabonba::Util::assertAsMap(request.body());
         Darabonba::Json tmp =
-            Darabonba::Util::anyifyMapValue(OpenApiUtil::query(m));
+            Darabonba::Util::anyifyMapValue(Util::query(m));
         request_.setBody(Darabonba::Util::toFormString(tmp));
         request_.header()["content-type"] = "application/x-www-form-urlencoded";
       }
@@ -200,9 +200,9 @@ Client::doRPCRequest(const std::string &action, const std::string &version,
         }
 
         std::map<std::string, std::string> signedParam =
-            Darabonba::Core::merge(request_.query(), OpenApiUtil::query(t))
+            Darabonba::Core::merge(request_.query(), Util::query(t))
                 .get<std::map<std::string, std::string>>();
-        request_.query()["Signature"] = OpenApiUtil::getRPCSignature(
+        request_.query()["Signature"] = Util::getRPCSignature(
             signedParam, request_.method(), accessKeySecret);
       }
 
@@ -387,11 +387,11 @@ Client::doROARequest(const std::string &action, const std::string &version,
           request_.header()["x-acs-security-token"] = securityToken;
         }
 
-        std::string stringToSign = OpenApiUtil::getStringToSign(request_);
+        std::string stringToSign = Util::getStringToSign(request_);
         request_.header()["authorization"] =
             (std::ostringstream("acs ", std::ios_base::ate)
              << accessKeyId << ":"
-             << OpenApiUtil::getROASignature(stringToSign, accessKeySecret))
+             << Util::getROASignature(stringToSign, accessKeySecret))
                 .str();
       }
 
@@ -563,7 +563,7 @@ Response Client::doROARequestWithForm(
       // if (!Darabonba::Util::isUnset(request.body())) {
       if (request.hasBody()) {
         Darabonba::Json m = Darabonba::Util::assertAsMap(request.body());
-        request_.setBody(OpenApiUtil::toForm(m));
+        request_.setBody(Util::toForm(m));
         request_.header()["content-type"] = "application/x-www-form-urlencoded";
       }
 
@@ -590,11 +590,11 @@ Response Client::doROARequestWithForm(
           request_.header()["x-acs-security-token"] = securityToken;
         }
 
-        std::string stringToSign = OpenApiUtil::getStringToSign(request_);
+        std::string stringToSign = Util::getStringToSign(request_);
         request_.header()["authorization"] =
             (std::ostringstream("acs ", std::ios_base::ate)
              << accessKeyId << ":"
-             << OpenApiUtil::getROASignature(stringToSign, accessKeySecret))
+             << Util::getROASignature(stringToSign, accessKeySecret))
                 .str();
       }
 
@@ -756,7 +756,7 @@ Response Client::doRequest(const Params &params, const Request &request,
                    {"x-acs-version", params.version()},
                    {"x-acs-action", params.action()},
                    {"user-agent", getUserAgent()},
-                   {"x-acs-date", OpenApiUtil::getTimestamp()},
+                   {"x-acs-date", Util::getTimestamp()},
                    {"x-acs-signature-nonce", Darabonba::Util::getNonce()},
                    {"accept", "application/json"}}),
               globalHeaders,
@@ -777,13 +777,13 @@ Response Client::doRequest(const Params &params, const Request &request,
 
       std::string signatureAlgorithm = Darabonba::Util::defaultString(
           signatureAlgorithm_, "ACS3-HMAC-SHA256");
-      std::string hashedRequestPayload = OpenApiUtil::hexEncode(
-          OpenApiUtil::hash(Darabonba::Util::toBytes(""), signatureAlgorithm));
+      std::string hashedRequestPayload = Util::hexEncode(
+          Util::hash(Darabonba::Util::toBytes(""), signatureAlgorithm));
       // if (!Darabonba::Util::isUnset(request.stream())) {
       if (request.hasStream()) {
         Darabonba::Bytes tmp = Darabonba::Util::readAsBytes(request.stream());
         hashedRequestPayload =
-            OpenApiUtil::hexEncode(OpenApiUtil::hash(tmp, signatureAlgorithm));
+            Util::hexEncode(Util::hash(tmp, signatureAlgorithm));
         request_.setBody(tmp);
         request_.header()["content-type"] = "application/octet-stream";
       } else {
@@ -791,15 +791,15 @@ Response Client::doRequest(const Params &params, const Request &request,
         if (request.hasBody()) {
           if (Darabonba::Util::equalString(params.reqBodyType(), "json")) {
             std::string jsonObj = Darabonba::Util::toJSONString(request.body());
-            hashedRequestPayload = OpenApiUtil::hexEncode(OpenApiUtil::hash(
+            hashedRequestPayload = Util::hexEncode(Util::hash(
                 Darabonba::Util::toBytes(jsonObj), signatureAlgorithm));
             request_.setBody(jsonObj);
             request_.header()["content-type"] =
                 "application/json; charset=utf-8";
           } else {
             Darabonba::Json m = Darabonba::Util::assertAsMap(request.body());
-            std::string formObj = OpenApiUtil::toForm(m);
-            hashedRequestPayload = OpenApiUtil::hexEncode(OpenApiUtil::hash(
+            std::string formObj = Util::toForm(m);
+            hashedRequestPayload = Util::hexEncode(Util::hash(
                 Darabonba::Util::toBytes(formObj), signatureAlgorithm));
             request_.setBody(formObj);
             request_.header()["content-type"] =
@@ -823,7 +823,7 @@ Response Client::doRequest(const Params &params, const Request &request,
             request_.header()["x-acs-security-token"] = securityToken;
           }
 
-          request_.header()["Authorization"] = OpenApiUtil::getAuthorization(
+          request_.header()["Authorization"] = Util::getAuthorization(
               request_, signatureAlgorithm, hashedRequestPayload, accessKeyId,
               accessKeySecret);
         }

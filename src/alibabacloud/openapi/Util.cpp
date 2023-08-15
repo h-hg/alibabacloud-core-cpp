@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <alibabacloud/OpenApiUtil.hpp>
+#include <alibabacloud/openapi/Util.hpp>
 #include <darabonba/Array.hpp>
 #include <darabonba/Core.hpp>
 #include <darabonba/String.hpp>
@@ -16,16 +16,16 @@
 #include <unordered_map>
 
 namespace Alibabacloud {
+namespace OpenApi {
 
 void convert(const Darabonba::Model &body, Darabonba::Model &content) {
   auto map = body.toMap();
   content.fromMap(map);
 }
 
-Darabonba::Bytes
-OpenApiUtil::signatureMethod(const std::string &stringToSign,
-                             const std::string &secret,
-                             const std::string &signAlgorithm) {
+Darabonba::Bytes Util::signatureMethod(const std::string &stringToSign,
+                                       const std::string &secret,
+                                       const std::string &signAlgorithm) {
   if (stringToSign.empty() || secret.empty() || signAlgorithm.empty())
     return {};
   if (signAlgorithm == "ACS3-HMAC-SHA256") {
@@ -43,8 +43,8 @@ OpenApiUtil::signatureMethod(const std::string &stringToSign,
   return {};
 }
 
-void OpenApiUtil::processObject(const Darabonba::Json &obj, std::string key,
-                                Darabonba::Json &out) {
+void Util::processObject(const Darabonba::Json &obj, std::string key,
+                         Darabonba::Json &out) {
   if (obj.is_primitive()) {
     if (obj.is_binary()) {
       const auto &objReal = obj.get_ref<const Darabonba::Json::binary_t &>();
@@ -65,8 +65,7 @@ void OpenApiUtil::processObject(const Darabonba::Json &obj, std::string key,
   }
 }
 
-std::map<std::string, std::string>
-OpenApiUtil::query(const Darabonba::Json &filter) {
+std::map<std::string, std::string> Util::query(const Darabonba::Json &filter) {
   if (filter.empty() || filter.is_null())
     return {};
   Darabonba::Json ret;
@@ -74,7 +73,7 @@ OpenApiUtil::query(const Darabonba::Json &filter) {
   return ret.get<std::map<std::string, std::string>>();
 }
 
-std::string OpenApiUtil::toForm(const Darabonba::Json &filter) {
+std::string Util::toForm(const Darabonba::Json &filter) {
   using Form = Darabonba::Http::Form;
   std::string ret;
   for (const auto &p : query(filter)) {
@@ -89,10 +88,9 @@ std::string OpenApiUtil::toForm(const Darabonba::Json &filter) {
   return ret;
 }
 
-std::string
-OpenApiUtil::arrayToStringWithSpecifiedStyle(const Darabonba::Json &array,
-                                             const std::string &prefix,
-                                             const std::string &style) {
+std::string Util::arrayToStringWithSpecifiedStyle(const Darabonba::Json &array,
+                                                  const std::string &prefix,
+                                                  const std::string &style) {
   if (array.empty())
     return "";
   if (style == "repeatList") {
@@ -134,8 +132,7 @@ OpenApiUtil::arrayToStringWithSpecifiedStyle(const Darabonba::Json &array,
   return "";
 }
 
-std::string
-OpenApiUtil::getCanonicalHeaders(const Darabonba::Http::Header &headers) {
+std::string Util::getCanonicalHeaders(const Darabonba::Http::Header &headers) {
   std::map<std::string, const std::string *> canonicalKeys;
   for (const auto &p : headers) {
     if (Darabonba::String::hasPrefix(p.first, "x-acs")) {
@@ -149,8 +146,9 @@ OpenApiUtil::getCanonicalHeaders(const Darabonba::Http::Header &headers) {
   return canonicalHeaders;
 }
 
-std::string OpenApiUtil::getCanonicalResource(
-    const std::string &path, const std::map<std::string, std::string> &query) {
+std::string
+Util::getCanonicalResource(const std::string &path,
+                           const std::map<std::string, std::string> &query) {
   if (query.empty())
     return path;
   std::string ret = path + '?';
@@ -167,7 +165,7 @@ std::string OpenApiUtil::getCanonicalResource(
   return ret;
 }
 
-std::string OpenApiUtil::getStringToSign(const Darabonba::Http::Request &req) {
+std::string Util::getStringToSign(const Darabonba::Http::Request &req) {
   auto method = req.method(), path = req.url().pathName();
   const auto &headers = req.header();
   const auto &query = req.query();
@@ -198,8 +196,8 @@ std::string OpenApiUtil::getStringToSign(const Darabonba::Http::Request &req) {
   return header + canonicalHeaders + canonicalResource;
 }
 
-std::string OpenApiUtil::getROASignature(const std::string &stringToSign,
-                                         const std::string &secret) {
+std::string Util::getROASignature(const std::string &stringToSign,
+                                  const std::string &secret) {
   if (secret.empty())
     return "";
   auto signData =
@@ -207,9 +205,9 @@ std::string OpenApiUtil::getROASignature(const std::string &stringToSign,
   return Darabonba::Encode::Encoder::base64EncodeToString(signData);
 }
 
-std::string OpenApiUtil::getRPCSignature(
-    const std::map<std::string, std::string> &signedParams,
-    const std::string &method, const std::string &secret) {
+std::string
+Util::getRPCSignature(const std::map<std::string, std::string> &signedParams,
+                      const std::string &method, const std::string &secret) {
   std::string canonicalQueryString = "";
   for (const auto &p : signedParams) {
     if (p.second.empty())
@@ -229,7 +227,7 @@ std::string OpenApiUtil::getRPCSignature(
 }
 
 std::pair<std::string, std::string>
-OpenApiUtil::getCanonicalHeadersPair(const Darabonba::Http::Header &headers) {
+Util::getCanonicalHeadersPair(const Darabonba::Http::Header &headers) {
   std::map<std::string, std::set<std::string>> tmpHeaders;
   std::set<std::string> canonicalKeys;
 
@@ -252,11 +250,11 @@ OpenApiUtil::getCanonicalHeadersPair(const Darabonba::Http::Header &headers) {
                                                    canonicalKeys.end(), ";")};
 }
 
-std::string OpenApiUtil::getAuthorization(const Darabonba::Http::Request &req,
-                                          const std::string &signatureAlgorithm,
-                                          const std::string &payload,
-                                          const std::string &accessKey,
-                                          const std::string &accessKeySecret) {
+std::string Util::getAuthorization(const Darabonba::Http::Request &req,
+                                   const std::string &signatureAlgorithm,
+                                   const std::string &payload,
+                                   const std::string &accessKey,
+                                   const std::string &accessKeySecret) {
   auto canonicalURI = req.url().pathName();
   if (canonicalURI.empty()) {
     canonicalURI = "/";
@@ -288,4 +286,5 @@ std::string OpenApiUtil::getAuthorization(const Darabonba::Http::Request &req,
          ",SignedHeaders=" + signedHeaders + ",Signature=" + signature;
 }
 
+} // namespace OpenApi
 } // namespace Alibabacloud
