@@ -2,6 +2,7 @@
 #include <alibabacloud/EndpointUtil.hpp>
 #include <cctype>
 #include <darabonba/String.hpp>
+#include <darabonba/Type.hpp>
 
 using std::shared_ptr;
 using std::string;
@@ -32,7 +33,7 @@ std::string EndpointUtil::getEndpointRules(const std::string &product,
 
   if (endpointType == "regional") {
     if (regionId.empty()) {
-      throw std::runtime_error(
+      throw Darabonba::Exception(
           "RegionId is empty, please set a valid RegionId");
     }
     result.append(product)
@@ -41,7 +42,7 @@ std::string EndpointUtil::getEndpointRules(const std::string &product,
         .append(regionId)
         .append(".aliyuncs.com");
   } else {
-    result.append(product).append(suffix).append(network).append(
+    result.append(product).append(suffixVal).append(networkVal).append(
         ".aliyuncs.com");
   }
   return lowercase(result);

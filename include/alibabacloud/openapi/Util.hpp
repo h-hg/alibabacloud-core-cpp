@@ -100,6 +100,7 @@ public:
                                           const std::string &secret,
                                           const std::string &signAlgorithm);
 
+  // TODO
   static Darabonba::Json mapToFlatStyle(const Darabonba::Json &input);
 
 protected:
@@ -114,7 +115,7 @@ protected:
                        const std::map<std::string, std::string> &query);
 
   static void processObject(const Darabonba::Json &obj, std::string key,
-                            Darabonba::Json &out);
+                            std::map<std::string, std::string> &out);
 };
 } // namespace OpenApi
 } // namespace Alibabacloud

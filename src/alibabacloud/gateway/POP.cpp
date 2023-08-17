@@ -1,6 +1,6 @@
 #include <alibabacloud/EndpointUtil.hpp>
-#include <alibabacloud/openapi/Util.hpp>
 #include <alibabacloud/gateway/POP.hpp>
+#include <alibabacloud/openapi/Util.hpp>
 #include <darabonba/Array.hpp>
 #include <darabonba/Core.hpp>
 #include <darabonba/Map.hpp>
@@ -311,7 +311,6 @@ POP::buildCanonicalizedResource(const Darabonba::Http::Query &query) {
   return canonicalizedResource;
 }
 
-// 完成
 std::string
 POP::buildCanonicalizedHeaders(const Darabonba::Http::Header &headers) {
   std::string canonicalizedHeaders = "";
@@ -326,7 +325,6 @@ POP::buildCanonicalizedHeaders(const Darabonba::Http::Header &headers) {
   return canonicalizedHeaders;
 }
 
-// 完成
 std::vector<std::string>
 POP::getSignedHeaders(const Darabonba::Http::Header &headers) {
   std::set<std::string> ret;

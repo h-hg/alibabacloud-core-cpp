@@ -21,12 +21,13 @@ namespace OpenApi {
 void convert(const Darabonba::Model &body, Darabonba::Model &content) {
   auto map = body.toMap();
   content.fromMap(map);
+  content.validate();
 }
 
 Darabonba::Bytes Util::signatureMethod(const std::string &stringToSign,
                                        const std::string &secret,
                                        const std::string &signAlgorithm) {
-  if (stringToSign.empty() || secret.empty() || signAlgorithm.empty())
+  if (secret.empty() || signAlgorithm.empty())
     return {};
   if (signAlgorithm == "ACS3-HMAC-SHA256") {
     return Darabonba::Signature::Signer::HmacSHA256Sign(stringToSign, secret);
@@ -44,13 +45,18 @@ Darabonba::Bytes Util::signatureMethod(const std::string &stringToSign,
 }
 
 void Util::processObject(const Darabonba::Json &obj, std::string key,
-                         Darabonba::Json &out) {
-  if (obj.is_primitive()) {
+                         std ::map<std::string, std::string> &out) {
+  if (obj.is_null()) {
+    return;
+  } else if (obj.is_primitive()) {
     if (obj.is_binary()) {
       const auto &objReal = obj.get_ref<const Darabonba::Json::binary_t &>();
       out[key] = std::string(objReal.begin(), objReal.end());
+    } else if (obj.is_string()) {
+      out[key] = obj.get<std::string>();
     } else {
-      out[key] = obj;
+      // bool, number, and others
+      out[key] = nlohmann::to_string(obj);
     }
   } else if (obj.is_array()) {
     for (size_t i = 0; i < obj.size(); ++i) {
@@ -68,9 +74,9 @@ void Util::processObject(const Darabonba::Json &obj, std::string key,
 std::map<std::string, std::string> Util::query(const Darabonba::Json &filter) {
   if (filter.empty() || filter.is_null())
     return {};
-  Darabonba::Json ret;
+  std::map<std::string, std::string> ret;
   processObject(filter, "", ret);
-  return ret.get<std::map<std::string, std::string>>();
+  return ret;
 }
 
 std::string Util::toForm(const Darabonba::Json &filter) {
@@ -123,7 +129,11 @@ std::string Util::arrayToStringWithSpecifiedStyle(const Darabonba::Json &array,
     }
     std::ostringstream oss;
     for (const auto &val : array) {
-      oss << val << flag;
+      if(val.is_string()) {
+        oss << val.get<std::string>() << flag;
+      } else {
+        oss << val << flag;
+      }
     }
     auto ret = oss.str();
     ret.pop_back();
@@ -219,8 +229,9 @@ Util::getRPCSignature(const std::map<std::string, std::string> &signedParams,
   canonicalQueryString.pop_back(); // pop '&'
   // %2F is the encode of '/'
   std::string stringToSign =
-      method + "&%2F" +
+      method + "&%2F&" +
       Darabonba::Encode::Encoder::percentEncode(canonicalQueryString);
+
   auto signData =
       Darabonba::Signature::Signer::HmacSHA1Sign(stringToSign, secret + '&');
   return Darabonba::Encode::Encoder::base64EncodeToString(signData);
@@ -244,7 +255,7 @@ Util::getCanonicalHeadersPair(const Darabonba::Http::Header &headers) {
   for (const auto &p : tmpHeaders) {
     canonicalHeaders +=
         p.first + ':' +
-        Darabonba::Array::join(p.second.begin(), p.second.end(), ", ") + '\n';
+        Darabonba::Array::join(p.second.begin(), p.second.end(), ",") + '\n';
   }
   return {canonicalHeaders, Darabonba::Array::join(canonicalKeys.begin(),
                                                    canonicalKeys.end(), ";")};
